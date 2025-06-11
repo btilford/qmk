@@ -23,3 +23,31 @@ Enter the bootloader in 3 ways:
 * **Bootmagic reset**: Hold down the key at (0,0) in the matrix (the top left key) and plug in the keyboard
 * **Physical reset button**: Briefly press the button on the back of the PCB
 * **Keycode in layout**: Press the key mapped to `QK_BOOT` if it is available
+
+
+## Notes
+
+https://www.boardsource.xyz/docs/guides-unicorne_pcb
+
+### Pins
+
+#### Left
+
+* OLED SDA - gpio22, GP22
+* OLED SCL - gpio23, GP23
+* SPI CS - gpio25, GP25
+* Joystick X & SPI SCK - gpio26, GP26
+* Joystick Y & SPI TX - gpio27, GP27
+* RGB LED Control - gpio29, GP29
+
+#### Right
+
+* OLED SDA - gpio22, GP22
+* OLED SCL - gpio23, GP23
+* SPI CS - gpio25, GP25
+* Joystick X & SPI SCK - gpio26, GP26
+* Joystick Y & SPI TX - gpio27, GP27
+* Buzzer Control - gpio28, GP28
+* RGB LED Control - gpio29, GP29
+
+ 
