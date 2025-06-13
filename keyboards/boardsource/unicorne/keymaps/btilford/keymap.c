@@ -17,13 +17,32 @@ enum layers {
 };
 
 enum tapdance {
-    TD_RET_MAIN_LAYER,
+    TD_RET_BASE,
 };
 
+void td_ret_base(tap_dance_state_t *state, void *user_data) {
+    if(state->count == 1) {
+        leader_start();
+    } else if(state->count == 2) {
+        layer_move(BASE);
+    } }
 tap_dance_action_t tap_dance_actions[] = {
-    [TD_RET_MAIN_LAYER] = ACTION_TAP_DANCE_DOUBLE(LT(MOUSE, KC_SPC), TO(BASE)),
+    [TD_RET_BASE] = ACTION_TAP_DANCE_FN(td_ret_base),
 };
 
+// Shift + esc = ~
+const key_override_t tilde_esc_override = ko_make_basic(MOD_MASK_SHIFT, KC_ESC, S(KC_GRV));
+
+// GUI + esc = `
+const key_override_t grave_esc_override = ko_make_basic(MOD_MASK_GUI, KC_ESC, KC_GRV);
+const key_override_t backspace_delete = ko_make_basic(MOD_MASK_SHIFT, KC_BSPC, KC_DEL);
+
+
+const key_override_t *key_overrides[] = {
+	&tilde_esc_override,
+	&grave_esc_override,
+    &backspace_delete
+};
 
 enum macro_codes {
     COPY_MACRO = SAFE_RANGE,
@@ -42,9 +61,9 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     // Base Alphabet
     [BASE] = LAYOUT_split_3x6_3(
         KC_TAB,     KC_Q,           KC_W,           KC_E,           KC_R,               KC_T,                       KC_Y,                   KC_U,                   KC_I,           KC_O,           KC_P,               LT(KB_SETTINGS, KC_BSPC),
-        QK_GESC,    LGUI_T(KC_A),   LCTL_T(KC_S),   LALT_T(KC_D),   LT(MOTION, KC_F),   KC_G,                       KC_H,                   LT(MOTION, KC_J),       RALT_T(KC_K),   RCTL_T(KC_L),   RGUI_T(KC_SCLN),    RSFT_T(KC_QUOT),
+        QK_GESC,    LGUI_T(KC_A),   LCTL_T(KC_S),   LALT_T(KC_D),   LT(MOTION, KC_F),   LSFT_T(KC_G),               LSFT_T(KC_H),           LT(MOTION, KC_J),       RALT_T(KC_K),   RCTL_T(KC_L),   RGUI_T(KC_SCLN),    KC_QUOT,
         SC_LSPO,    KC_Z,           KC_X,           KC_C,           KC_V,               KC_B,                       LT(NUM_PAD, KC_N),      LT(MEDIA, KC_M),        KC_COMM,        KC_DOT,         KC_SLSH,            SC_RSPC,
-                                                    KC_LGUI,        QK_LEAD,            /*LT(MOUSE, KC_SPC)*/TD(TD_RET_MAIN_LAYER),          LT(NUM_ROW, KC_ENT),    MO(TEXT),               KC_RALT
+                                                    KC_LGUI,        TD(TD_RET_BASE),    LT(MOUSE, KC_SPC),          LT(NUM_ROW, KC_ENT),    MO(TEXT),               KC_RALT
     ),
     // Numrow and Symbols A
     [NUM_ROW] = LAYOUT_split_3x6_3(
@@ -85,13 +104,13 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     // Numpad
     [NUM_PAD] = LAYOUT_split_3x6_3(
         KC_NO,      KC_PSLS,        KC_7,           KC_8,           KC_9,           KC_PAST,                    KC_NO,          KC_NO,          KC_NO,          KC_NO,          KC_NO,              _______,
-        _______,    KC_PMNS,        KC_4,           KC_5,           KC_6,           KC_PPLS,                    KC_NO,          KC_NO,          KC_NO,          KC_NO,          KC_NO,              KC_NO,
+        _______,    KC_PMNS,        KC_4,           KC_5,           KC_6,           KC_PPLS,                    KC_NO,          KC_NO,          KC_NO,          KC_NO,          KC_NO,              KC_PEQL,
         _______,    KC_NO,          KC_1,           KC_2,           KC_3,           KC_0,                       KC_NO,          KC_NO,          KC_NO,          KC_NO,          KC_NO,              _______,
-                                                    _______,        _______,        KC_PEQL,                    _______,        _______,        _______
+                                                    _______,        _______,        _______,                    _______,        _______,        _______
     ),
     // Danger
     [KB_SETTINGS] = LAYOUT_split_3x6_3(
-        QK_BOOT,    _______,        _______,        _______,        _______,    _______,                    RM_VALU,        RM_HUEU,        RM_SATU,        RM_NEXT,        RM_TOGG,            _______,
+        QK_BOOT,    _______,        _______,        _______,        QK_REBOOT,  _______,                    RM_VALU,        RM_HUEU,        RM_SATU,        RM_NEXT,        RM_TOGG,            _______,
         EE_CLR,     _______,        _______,        _______,        _______,    _______,                    RM_VALD,        RM_HUED,        RM_SATD,        RM_PREV,        CK_TOGG,            _______,
         _______,    _______,        _______,        _______,        _______,    _______,                    _______,        _______,        _______,        _______,        _______,            _______,
                                                     _______,        _______,    _______,                    _______,        _______,        _______
@@ -322,5 +341,27 @@ bool rgb_matrix_indicators_user(void) {
 // }
 void leader_end_user(void) {
     isLeader = false;
-    SEND_STRING("Leader End");
+    if(leader_sequence_two_keys(KC_L, KC_B)) {
+        layer_move(BASE);
+    } else if(leader_sequence_three_keys(KC_L, KC_N, KC_P)) {
+        layer_on(NUM_PAD);
+    } else if(leader_sequence_three_keys(KC_L, KC_N, KC_R)) {
+        layer_on(NUM_ROW);
+    } else if(leader_sequence_two_keys(KC_L, KC_T)) {
+        layer_on(TEXT);
+    } else if(leader_sequence_two_keys(KC_M, KC_U)) {
+        layer_on(MEDIA);
+    } else if(leader_sequence_two_keys(KC_M, KC_O)) {
+        layer_on(MOTION);
+    } else if(leader_sequence_two_keys(KC_M, KC_S)) {
+        layer_on(MOUSE);
+    } else if(leader_sequence_three_keys(KC_W, KC_M, KC_H)) {
+        SEND_STRING(SS_LGUI(SS_LSFT("h")));
+    } else if(leader_sequence_three_keys(KC_W, KC_M, KC_L)) {
+        SEND_STRING(SS_LGUI(SS_LSFT("l")));
+    } else if(leader_sequence_three_keys(KC_W, KC_M, KC_J)) {
+        SEND_STRING(SS_LGUI(SS_LSFT("j")));
+    } else if(leader_sequence_three_keys(KC_W, KC_M, KC_K)) {
+        SEND_STRING(SS_LGUI(SS_LSFT("k")));
+    }
 }

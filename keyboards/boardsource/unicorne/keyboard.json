@@ -9,7 +9,7 @@
         "audio": true,
         "bootmagic": true,
         "encoder": false,
-        "extrakey": false,
+        "extrakey": true,
         "mousekey": true,
         "nkro": true,
         "oled": true,
