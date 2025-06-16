@@ -5,19 +5,44 @@
 
 bool isLeader = false;
 
+enum unicode_names {
+    DEG,
+    LEFT,
+    RIGHT,
+    UP,
+    DOWN,
+    PLAY,
+    STOP
+};
+//         _______,    _______,        UM(0x23F9),     UM(0x00B0),     UM(0x25B6),    _______,                    UM(0x1F814), UM(0x1F817),        UM(0x1F815),        UM(0x1F816),        _______,            _______,
+
+const uint32_t PROGMEM unicode_map[] = {
+    [DEG] = 0x00B0,
+    [STOP] = 0x23F9,
+    [PLAY] = 0x25B6,
+    [LEFT] = 0x2190,
+    [RIGHT] = 0x2192,
+    [UP] = 0x2191,
+    [DOWN] = 0x2193,
+};
+
 enum layers {
     BASE = 0,
-    NUM_ROW,
+    SYMB,
     MOTION,
     MOUSE,
     MEDIA,
     TEXT,
     NUM_PAD,
+    FUNC,
+    UNICDE,
     KB_SETTINGS,
 };
 
 enum tapdance {
     TD_RET_BASE,
+    TD_CUR_OP,
+    TD_CUR_CL,
 };
 
 void td_ret_base(tap_dance_state_t *state, void *user_data) {
@@ -25,9 +50,14 @@ void td_ret_base(tap_dance_state_t *state, void *user_data) {
         leader_start();
     } else if(state->count == 2) {
         layer_move(BASE);
-    } }
+    }
+}
+
 tap_dance_action_t tap_dance_actions[] = {
     [TD_RET_BASE] = ACTION_TAP_DANCE_FN(td_ret_base),
+    [TD_CUR_OP] = ACTION_TAP_DANCE_DOUBLE(KC_LCBR, KC_LBRC),
+    [TD_CUR_CL] = ACTION_TAP_DANCE_DOUBLE(KC_RCBR, KC_RBRC),
+
 };
 
 // Shift + esc = ~
@@ -48,6 +78,7 @@ enum macro_codes {
     COPY_MACRO = SAFE_RANGE,
     PASTE_MACRO,
     CUT_MACRO,
+    MAC_DEG,
 };
 
 
@@ -61,23 +92,23 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     // Base Alphabet
     [BASE] = LAYOUT_split_3x6_3(
         KC_TAB,     KC_Q,           KC_W,           KC_E,           KC_R,               KC_T,                       KC_Y,                   KC_U,                   KC_I,           KC_O,           KC_P,               LT(KB_SETTINGS, KC_BSPC),
-        QK_GESC,    LGUI_T(KC_A),   LCTL_T(KC_S),   LALT_T(KC_D),   LT(MOTION, KC_F),   LSFT_T(KC_G),               LSFT_T(KC_H),           LT(MOTION, KC_J),       RALT_T(KC_K),   RCTL_T(KC_L),   RGUI_T(KC_SCLN),    KC_QUOT,
+        QK_GESC,    LGUI_T(KC_A),   LCTL_T(KC_S),   LALT_T(KC_D),   LT(MOTION, KC_F),   LSFT_T(KC_G),               RSFT_T(KC_H),           LT(MOTION, KC_J),       RALT_T(KC_K),   RCTL_T(KC_L),   RGUI_T(KC_SCLN),    KC_QUOT,
         SC_LSPO,    KC_Z,           KC_X,           KC_C,           KC_V,               KC_B,                       LT(NUM_PAD, KC_N),      LT(MEDIA, KC_M),        KC_COMM,        KC_DOT,         KC_SLSH,            SC_RSPC,
-                                                    KC_LGUI,        TD(TD_RET_BASE),    LT(MOUSE, KC_SPC),          LT(NUM_ROW, KC_ENT),    MO(TEXT),               KC_RALT
+                                                    KC_LGUI,        TD(TD_RET_BASE),    LT(MOUSE, KC_SPC),          LT(SYMB, KC_ENT),    MO(TEXT),               KC_RALT
     ),
     // Numrow and Symbols A
-    [NUM_ROW] = LAYOUT_split_3x6_3(
-        _______,    KC_1,           KC_2,           KC_3,           KC_4,       KC_5,                       KC_6,           KC_7,           KC_8,           KC_9,           KC_0,               KC_BSLS,
-        _______,    KC_EXLM,        KC_AT,          KC_HASH,        KC_DLR,     KC_PERC,                    KC_CIRC,        KC_AMPR,        KC_ASTR,        KC_LPRN,        KC_RPRN,            _______,
-        _______,    _______,        _______,        _______,        KC_MINS,    KC_LBRC,                    KC_RBRC,        KC_EQL,         _______,        _______,        _______,            _______,
-                                                    _______,        _______,    _______,                    _______,        _______,        _______
+    [SYMB] = LAYOUT_split_3x6_3(
+        _______,    KC_1,               KC_2,           KC_3,               KC_4,       KC_5,                       KC_6,               KC_7,           KC_8,               KC_9,               KC_0,               _______,
+        _______,    KC_EXLM,            KC_AT,          KC_HASH,            KC_DLR,     KC_PERC,                    KC_CIRC,            KC_AMPR,        KC_ASTR,            KC_LPRN,            KC_RPRN,            KC_BSLS,
+        _______,    _______,        _______,            KC_LSFT,            KC_MINS,    TD(TD_CUR_OP),              TD(TD_CUR_CL),      KC_EQL,         KC_RSFT,        _______,        _______,            _______,
+                                                    _______,        _______,            _______,                    _______,        _______,        _______
     ),
 
     // Motion
     [MOTION] = LAYOUT_split_3x6_3(
         KC_GRV,     _______,        _______,        KC_MAIL,        KC_AGIN,    _______,                    KC_HOME,        KC_PGDN,        KC_PGUP,        KC_INS,         KC_PSCR,            KC_DEL,
         _______,    KC_LSFT,        KC_LCTL,        KC_LALT,        _______,    _______,                    KC_LEFT,        KC_DOWN,        KC_UP,          KC_RGHT,        KC_END,             RSFT(_______),
-        KC_LCTL,    KC_UNDO,        CUT_MACRO,      COPY_MACRO,     KC_PSTE,    _______,                    _______,        KC_APP,         _______,        _______,        _______,            KC_RCTL,
+        _______,    KC_UNDO,        CUT_MACRO,      COPY_MACRO,     KC_PSTE,    _______,                    _______,        KC_APP,         _______,        _______,        _______,            _______,
                                                     _______,        _______,    _______,                    _______,        _______,        _______
     ),
     // Mouse
@@ -108,10 +139,23 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
         _______,    KC_NO,          KC_1,           KC_2,           KC_3,           KC_0,                       KC_NO,          KC_NO,          KC_NO,          KC_NO,          KC_NO,              _______,
                                                     _______,        _______,        _______,                    _______,        _______,        _______
     ),
+    [FUNC] = LAYOUT_split_3x6_3(
+        _______,    _______,        _______,        _______,        _______,  _______,                    _______,           _______,        _______,          _______,        _______,            _______,
+        KC_F1,      LGUI_T(KC_F2),  LCTL_T(KC_F3),  LALT_T(KC_F4),  KC_F5,    LSFT_T(KC_F6),              RSFT_T(KC_F7),    KC_F8,         RALT_T(KC_F9),   RCTL_T(KC_F10), RGUI_T(KC_F11),     KC_F12,
+        _______,    _______,        _______,        _______,        _______,    _______,                    _______,        _______,        _______,        _______,        _______,            _______,
+                                                    _______,        _______,    _______,                    _______,        _______,        _______
+    ),
+    [UNICDE] = LAYOUT_split_3x6_3(
+        _______,    _______,        _______,        _______,        _______,    _______,                    _______,    _______,        _______,        _______,        _______,            _______,
+        _______,    _______,        UM(STOP),     MAC_DEG,     UM(PLAY),    _______,                    UC(0x2190), UM(DOWN),        UM(UP),        UM(RIGHT),        _______,            _______,
+        _______,    _______,        _______,        _______,        _______,    _______,                    _______,    _______,        _______,        _______,        _______,            _______,
+                                                    _______,        _______,    _______,                    _______,    _______,        _______
+    ),
     // Danger
+    //
     [KB_SETTINGS] = LAYOUT_split_3x6_3(
         QK_BOOT,    _______,        _______,        _______,        QK_REBOOT,  _______,                    RM_VALU,        RM_HUEU,        RM_SATU,        RM_NEXT,        RM_TOGG,            _______,
-        EE_CLR,     _______,        _______,        _______,        _______,    _______,                    RM_VALD,        RM_HUED,        RM_SATD,        RM_PREV,        CK_TOGG,            _______,
+        EE_CLR,     _______,        _______,        _______,        QK_MAKE,    _______,                    RM_VALD,        RM_HUED,        RM_SATD,        RM_PREV,        CK_TOGG,            _______,
         _______,    _______,        _______,        _______,        _______,    _______,                    _______,        _______,        _______,        _______,        _______,            _______,
                                                     _______,        _______,    _______,                    _______,        _______,        _______
     )
@@ -124,6 +168,11 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     os_variant_t os = detected_host_os();
+
+    if(isLeader) {
+        rgb_matrix_set_color(g_led_config.matrix_co[record->event.key.row][record->event.key.col], RGB_PURPLE);
+    }
+
 
     switch(keycode) {
         case COPY_MACRO:
@@ -140,7 +189,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                 if(os == OS_MACOS || os == OS_IOS) {
                     SEND_STRING(SS_LCMD("p"));
                 } else {
-                    SEND_STRING(SS_LCTL("p"));
+                    SEND_STRING(SS_LCTL("v"));
                 }
             }
             break;
@@ -153,6 +202,10 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                 }
             }
             break;
+        case MAC_DEG:
+            if(record->event.pressed) {
+               send_unicode_string("°");
+            }
     }
     return true;
 }
@@ -160,6 +213,15 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 bool rgb_matrix_indicators_user(void) {
     uint8_t cur = get_highest_layer(layer_state);
     static uint8_t prev = 0;
+
+    if(isLeader) {
+
+        rgb_matrix_set_color_all(RGB_OFF);
+        rgb_matrix_set_color(g_led_config.matrix_co[3][1], RGB_PURPLE);
+
+        return false;
+    }
+
 
     if(cur == prev) {
         return false;
@@ -172,6 +234,15 @@ bool rgb_matrix_indicators_user(void) {
                 rgb_matrix_set_color_all(RGB_RED);
                 break;
 
+            case UNICDE:
+                rgb_matrix_set_color_all(RGB_YELLOW);
+                break;
+            case FUNC:
+                rgb_matrix_set_color_all(RGB_OFF);
+                for(uint8_t col = 0; col < MATRIX_COLS; ++col) {
+                    rgb_matrix_set_color(g_led_config.matrix_co[1][col], RGB_GREEN);
+                }
+                break;
             case NUM_PAD:
                 // Numpad
                 rgb_matrix_set_color_all(RGB_OFF);
@@ -189,10 +260,10 @@ bool rgb_matrix_indicators_user(void) {
                 rgb_matrix_set_color(g_led_config.matrix_co[2][5], RGB_BLUE);
 
 
-                rgb_matrix_set_color(g_led_config.matrix_co[0][5], RGB_GREEN);
-                rgb_matrix_set_color(g_led_config.matrix_co[1][5], RGB_GREEN);
-                rgb_matrix_set_color(g_led_config.matrix_co[0][1], RGB_RED);
-                rgb_matrix_set_color(g_led_config.matrix_co[0][1], RGB_RED);
+                // rgb_matrix_set_color(g_led_config.matrix_co[0][5], RGB_GREEN);
+                // rgb_matrix_set_color(g_led_config.matrix_co[1][5], RGB_GREEN);
+                // rgb_matrix_set_color(g_led_config.matrix_co[0][1], RGB_RED);
+                // rgb_matrix_set_color(g_led_config.matrix_co[0][1], RGB_RED);
 
                 rgb_matrix_set_color(g_led_config.matrix_co[3][2], RGB_YELLOW);
                 break;
@@ -275,27 +346,25 @@ bool rgb_matrix_indicators_user(void) {
                 }
                 // rgb_matrix_set_color(g_led_config.matrix_co[4][1], RGB_AZURE);
                 break;
-            case NUM_ROW:
+            case SYMB:
                 // Symbols And Number Row
                 rgb_matrix_set_color_all(RGB_OFF);
-                for(uint8_t col = 1; col < MATRIX_COLS; ++col) {
-                    rgb_matrix_set_color(g_led_config.matrix_co[0][col], RGB_BLUE);
-                }
-                for(uint8_t col = 1; col < MATRIX_COLS; ++col) {
-                    rgb_matrix_set_color(g_led_config.matrix_co[4][col], RGB_BLUE);
-                }
-                rgb_matrix_set_color(g_led_config.matrix_co[4][0], RGB_GOLD);
+                // for(uint8_t col = 1; col < MATRIX_COLS; ++col) {
+                //     rgb_matrix_set_color(g_led_config.matrix_co[0][col], RGB_BLUE);
+                // }
+                // for(uint8_t col = 1; col < MATRIX_COLS; ++col) {
+                //     rgb_matrix_set_color(g_led_config.matrix_co[4][col], RGB_BLUE);
+                // }
+                // rgb_matrix_set_color(g_led_config.matrix_co[4][0], RGB_GOLD);
 
 
                 // rgb_matrix_set_color(g_led_config.matrix_co[0][MATRIX_COLS-1], RGB_GOLD);
-                for(uint8_t col = 0; col < MATRIX_COLS; ++col) {
-                    rgb_matrix_set_color(g_led_config.matrix_co[1][col], RGB_GOLD);
-                }
+
                 for(uint8_t col = 1; col < MATRIX_COLS; ++col) {
                     rgb_matrix_set_color(g_led_config.matrix_co[1][col], RGB_GOLD);
                     rgb_matrix_set_color(g_led_config.matrix_co[5][col], RGB_GOLD);
                 }
-
+                rgb_matrix_set_color(g_led_config.matrix_co[5][0], RGB_GOLD);
 
                 for(uint8_t col = 4; col < MATRIX_COLS; ++col) {
                     rgb_matrix_set_color(g_led_config.matrix_co[2][col], RGB_GOLD);
@@ -304,49 +373,31 @@ bool rgb_matrix_indicators_user(void) {
 
                 break;
             default:
-               // rgb_matrix_set_color(i, RGB_OFF);
-               // rgb_matrix_set_color(g_led_config.matrix_co[1][0], RGB_RED);
-               // rgb_matrix_set_color(g_led_config.matrix_co[4][0], RGB_RED);
-               //
-               //
-               //
-               // // Left Homerow
-               // rgb_matrix_set_color(g_led_config.matrix_co[1][1], RGB_ORANGE);
-               // rgb_matrix_set_color(g_led_config.matrix_co[1][2], RGB_ORANGE);
-               // rgb_matrix_set_color(g_led_config.matrix_co[1][3], RGB_ORANGE);
-               // rgb_matrix_set_color(g_led_config.matrix_co[1][4], RGB_ORANGE);
-               //
-               //
-               // rgb_matrix_set_color(g_led_config.matrix_co[5][1], RGB_ORANGE);
-               // rgb_matrix_set_color(g_led_config.matrix_co[5][2], RGB_ORANGE);
-               // rgb_matrix_set_color(g_led_config.matrix_co[5][3], RGB_ORANGE);
-               // rgb_matrix_set_color(g_led_config.matrix_co[5][4], RGB_ORANGE);
-               //
-               //
-               // // Thumbs
-               // rgb_matrix_set_color(g_led_config.matrix_co[3][0], RGB_ORANGE);
-               // rgb_matrix_set_color(g_led_config.matrix_co[3][1], RGB_ORANGE);
-               // rgb_matrix_set_color(g_led_config.matrix_co[3][2], RGB_ORANGE);
-               // rgb_matrix_set_color(g_led_config.matrix_co[7][0], RGB_ORANGE);
-               // rgb_matrix_set_color(g_led_config.matrix_co[7][1], RGB_ORANGE);
-               // rgb_matrix_set_color(g_led_config.matrix_co[7][2], RGB_ORANGE);
-               //
                break;
         }
     return false;
 }
 
-// void leader_start(void) {
-//     isLeader = true;
+void leader_start_user(void) {
+    isLeader = true;
+}
+
+// boo leader_add_user(uint16_t keycode) {
+//
 // }
+
 void leader_end_user(void) {
     isLeader = false;
     if(leader_sequence_two_keys(KC_L, KC_B)) {
         layer_move(BASE);
+    } else if(leader_sequence_three_keys(KC_L, KC_F, KC_N)) {
+        layer_on(FUNC);
+    } else if(leader_sequence_two_keys(KC_L, KC_U)) {
+        layer_on(UNICDE);
     } else if(leader_sequence_three_keys(KC_L, KC_N, KC_P)) {
         layer_on(NUM_PAD);
     } else if(leader_sequence_three_keys(KC_L, KC_N, KC_R)) {
-        layer_on(NUM_ROW);
+        layer_on(SYMB);
     } else if(leader_sequence_two_keys(KC_L, KC_T)) {
         layer_on(TEXT);
     } else if(leader_sequence_two_keys(KC_M, KC_U)) {
@@ -355,7 +406,11 @@ void leader_end_user(void) {
         layer_on(MOTION);
     } else if(leader_sequence_two_keys(KC_M, KC_S)) {
         layer_on(MOUSE);
-    } else if(leader_sequence_three_keys(KC_W, KC_M, KC_H)) {
+    }
+
+    // TODO match up with window management shortcuts and make MacOS aware
+    // where possible.
+    else if(leader_sequence_three_keys(KC_W, KC_M, KC_H)) {
         SEND_STRING(SS_LGUI(SS_LSFT("h")));
     } else if(leader_sequence_three_keys(KC_W, KC_M, KC_L)) {
         SEND_STRING(SS_LGUI(SS_LSFT("l")));

@@ -12,7 +12,7 @@
 #define AUDIO_PWM_DRIVER PWMD6
 #define AUDIO_INIT_DELAY
 #define AUDIO_PWM_CHANNEL RP2040_PWM_CHANNEL_A
-#define STARTUP_SONG SONG(ODE_TO_JOY)
+// #define STARTUP_SONG SONG(ODE_TO_JOY)
 
 #define ANALOG_JOYSTICK_Y_AXIS_PIN GP26
 #define ANALOG_JOYSTICK_X_AXIS_PIN GP27
@@ -23,6 +23,8 @@
 #define TAPPING_TERM 250
 // #define TAPPING_TERM_PER_KEY
 //define WPM_ENABLE = yes
+
+#define ENABLE_COMPILE_KEYCODE
 
 #define LEADER_TIMEOUT 450
 #define LEADER_PER_KEY_TIMING
@@ -61,3 +63,8 @@
 #define ENABLE_RGB_MATRIX_MULTISPLASH         // Full gradient & value pulse away from multiple key hits then fades value out
 #define ENABLE_RGB_MATRIX_RIVERFLOW
 #define ENABLE_RGB_MATRIX_EFFECT_MAX
+
+// #define MOUSEKEY_MAX_SPEED 12
+// #define MOUSEKEY_MOVE_DELTA 10
+#define MK_KINETIC_SPEED
+
