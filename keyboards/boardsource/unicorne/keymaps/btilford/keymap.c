@@ -1,29 +1,42 @@
+#include <sys/types.h>
 #include QMK_KEYBOARD_H
+#include <stdio.h>
+
 #if __has_include("keymap.h")
 #    include "keymap.h"
 #endif
+typedef enum {
+    TD_NONE,
+    TD_UNKNOWN,
+    TD_SINGLE_TAP,
+    TD_SINGLE_HOLD,
+    TD_DOUBLE_TAP,
+    TD_DOUBLE_HOLD,
+    TD_DOUBLE_SINGLE_TAP,
+    TD_TRIPLE_TAP,
+    TD_TRIPLE_HOLD,
+} td_state_t;
 
-bool isLeader = false;
+typedef struct {
+    bool       is_press_action;
+    td_state_t state;
+} td_tap_t;
 
-enum unicode_names {
-    DEG,
-    LEFT,
-    RIGHT,
-    UP,
-    DOWN,
-    PLAY,
-    STOP
-};
-//         _______,    _______,        UM(0x23F9),     UM(0x00B0),     UM(0x25B6),    _______,                    UM(0x1F814), UM(0x1F817),        UM(0x1F815),        UM(0x1F816),        _______,            _______,
+
+void       master_oled_render(void);
+td_state_t cur_dance(tap_dance_state_t *state);
+void       td_m_menu_fin(tap_dance_state_t *state, void *user_data);
+void       td_m_menu_reset(tap_dance_state_t *state, void *user_data);
+void       on_layer_change(void);
+
+
+uint8_t leaderCount = 0;
+
+enum unicode_names { DEG, LEFT, RIGHT, UP, DOWN, PLAY, STOP };
 
 const uint32_t PROGMEM unicode_map[] = {
-    [DEG] = 0x00B0,
-    [STOP] = 0x23F9,
-    [PLAY] = 0x25B6,
-    [LEFT] = 0x2190,
-    [RIGHT] = 0x2192,
-    [UP] = 0x2191,
-    [DOWN] = 0x2193,
+
+    [DEG] = 0x00B0, [STOP] = 0x23F9, [PLAY] = 0x25B6, [LEFT] = 0x2190, [RIGHT] = 0x2192, [UP] = 0x2191, [DOWN] = 0x2193,
 };
 
 enum layers {
@@ -43,21 +56,7 @@ enum tapdance {
     TD_RET_BASE,
     TD_CUR_OP,
     TD_CUR_CL,
-};
-
-void td_ret_base(tap_dance_state_t *state, void *user_data) {
-    if(state->count == 1) {
-        leader_start();
-    } else if(state->count == 2) {
-        layer_move(BASE);
-    }
-}
-
-tap_dance_action_t tap_dance_actions[] = {
-    [TD_RET_BASE] = ACTION_TAP_DANCE_FN(td_ret_base),
-    [TD_CUR_OP] = ACTION_TAP_DANCE_DOUBLE(KC_LCBR, KC_LBRC),
-    [TD_CUR_CL] = ACTION_TAP_DANCE_DOUBLE(KC_RCBR, KC_RBRC),
-
+    TD_M_MENU,
 };
 
 // Shift + esc = ~
@@ -65,14 +64,9 @@ const key_override_t tilde_esc_override = ko_make_basic(MOD_MASK_SHIFT, KC_ESC, 
 
 // GUI + esc = `
 const key_override_t grave_esc_override = ko_make_basic(MOD_MASK_GUI, KC_ESC, KC_GRV);
-const key_override_t backspace_delete = ko_make_basic(MOD_MASK_SHIFT, KC_BSPC, KC_DEL);
+const key_override_t backspace_delete   = ko_make_basic(MOD_MASK_SHIFT, KC_BSPC, KC_DEL);
 
-
-const key_override_t *key_overrides[] = {
-	&tilde_esc_override,
-	&grave_esc_override,
-    &backspace_delete
-};
+const key_override_t *key_overrides[] = {&tilde_esc_override, &grave_esc_override, &backspace_delete};
 
 enum macro_codes {
     COPY_MACRO = SAFE_RANGE,
@@ -80,7 +74,6 @@ enum macro_codes {
     CUT_MACRO,
     MAC_DEG,
 };
-
 
 /* THIS FILE WAS GENERATED!
  *
@@ -90,77 +83,25 @@ enum macro_codes {
 
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     // Base Alphabet
-    [BASE] = LAYOUT_split_3x6_3(
-        KC_TAB,     KC_Q,           KC_W,           KC_E,           KC_R,               KC_T,                       KC_Y,                   KC_U,                   KC_I,           KC_O,           KC_P,               LT(KB_SETTINGS, KC_BSPC),
-        QK_GESC,    LGUI_T(KC_A),   LCTL_T(KC_S),   LALT_T(KC_D),   LT(MOTION, KC_F),   LSFT_T(KC_G),               RSFT_T(KC_H),           LT(MOTION, KC_J),       RALT_T(KC_K),   RCTL_T(KC_L),   RGUI_T(KC_SCLN),    KC_QUOT,
-        SC_LSPO,    KC_Z,           KC_X,           KC_C,           KC_V,               KC_B,                       LT(NUM_PAD, KC_N),      LT(MEDIA, KC_M),        KC_COMM,        KC_DOT,         KC_SLSH,            SC_RSPC,
-                                                    KC_LGUI,        TD(TD_RET_BASE),    LT(MOUSE, KC_SPC),          LT(SYMB, KC_ENT),    MO(TEXT),               KC_RALT
-    ),
+    [BASE] = LAYOUT_split_3x6_3(KC_TAB, KC_Q, KC_W, KC_E, KC_R, KC_T, KC_Y, KC_U, KC_I, KC_O, KC_P, LT(KB_SETTINGS, KC_BSPC), QK_GESC, LGUI_T(KC_A), LCTL_T(KC_S), LALT_T(KC_D), LT(MOTION, KC_F), LSFT_T(KC_G), RSFT_T(KC_H), LT(TEXT, KC_J), RALT_T(KC_K), RCTL_T(KC_L), RGUI_T(KC_SCLN), KC_QUOT, SC_LSPO, KC_Z, KC_X, KC_C, KC_V, KC_B, LT(NUM_PAD, KC_N), LT(MEDIA, KC_M), KC_COMM, KC_DOT, KC_SLSH, SC_RSPC, KC_LGUI, TD(TD_RET_BASE), LT(MOUSE, KC_SPC), LT(SYMB, KC_ENT), MO(TEXT), KC_RALT),
     // Numrow and Symbols A
-    [SYMB] = LAYOUT_split_3x6_3(
-        _______,    KC_1,               KC_2,           KC_3,               KC_4,       KC_5,                       KC_6,               KC_7,           KC_8,               KC_9,               KC_0,               _______,
-        _______,    KC_EXLM,            KC_AT,          KC_HASH,            KC_DLR,     KC_PERC,                    KC_CIRC,            KC_AMPR,        KC_ASTR,            KC_LPRN,            KC_RPRN,            KC_BSLS,
-        _______,    _______,        _______,            KC_LSFT,            KC_MINS,    TD(TD_CUR_OP),              TD(TD_CUR_CL),      KC_EQL,         KC_RSFT,        _______,        _______,            _______,
-                                                    _______,        _______,            _______,                    _______,        _______,        _______
-    ),
+    [SYMB] = LAYOUT_split_3x6_3(_______, KC_1, KC_2, KC_3, KC_4, KC_5, KC_6, KC_7, KC_8, KC_9, KC_0, _______, _______, KC_EXLM, KC_AT, KC_HASH, KC_DLR, KC_PERC, KC_CIRC, KC_AMPR, KC_ASTR, KC_LPRN, KC_RPRN, KC_BSLS, _______, _______, _______, KC_LSFT, KC_MINS, TD(TD_CUR_OP), TD(TD_CUR_CL), KC_EQL, KC_RSFT, _______, _______, _______, _______, _______, _______, _______, _______, _______),
 
     // Motion
-    [MOTION] = LAYOUT_split_3x6_3(
-        KC_GRV,     _______,        _______,        KC_MAIL,        KC_AGIN,    _______,                    KC_HOME,        KC_PGDN,        KC_PGUP,        KC_INS,         KC_PSCR,            KC_DEL,
-        _______,    KC_LSFT,        KC_LCTL,        KC_LALT,        _______,    _______,                    KC_LEFT,        KC_DOWN,        KC_UP,          KC_RGHT,        KC_END,             RSFT(_______),
-        _______,    KC_UNDO,        CUT_MACRO,      COPY_MACRO,     KC_PSTE,    _______,                    _______,        KC_APP,         _______,        _______,        _______,            _______,
-                                                    _______,        _______,    _______,                    _______,        _______,        _______
-    ),
+    [MOTION] = LAYOUT_split_3x6_3(KC_GRV, _______, _______, KC_MAIL, KC_AGIN, _______, KC_HOME, KC_PGDN, KC_PGUP, KC_INS, KC_PSCR, KC_DEL, _______, KC_LSFT, KC_LCTL, KC_LALT, _______, _______, KC_LEFT, KC_DOWN, KC_UP, KC_RGHT, KC_END, RSFT(_______), _______, KC_UNDO, CUT_MACRO, COPY_MACRO, KC_PSTE, _______, _______, KC_APP, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______),
     // Mouse
-    [MOUSE] = LAYOUT_split_3x6_3(
-        MS_ACL0,    MS_ACL1,        MS_ACL2,        MS_UP,          _______,    _______,                    _______,        _______,        _______,        _______,        _______,            _______,
-        _______,    _______,        MS_LEFT,        MS_DOWN,        MS_RGHT,    _______,                    MS_WHLL,        MS_WHLD,        MS_WHLU,        MS_WHLR,        _______,            _______,
-        _______,    _______,        _______,        _______,        _______,    _______,                    _______,        _______,        _______,        _______,        _______,            _______,
-                                                    _______,        _______,    _______,                    MS_BTN1,        MS_BTN2,        MS_BTN3
-    ),
+    [MOUSE] = LAYOUT_split_3x6_3(MS_ACL0, MS_ACL1, MS_ACL2, MS_UP, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, MS_LEFT, MS_DOWN, MS_RGHT, _______, MS_WHLL, MS_WHLD, MS_WHLU, MS_WHLR, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, MS_BTN1, MS_BTN2, MS_BTN3),
     // Media
-    [MEDIA] = LAYOUT_split_3x6_3(
-        _______,    KC_NO,          KC_NO,          KC_NO,          KC_EXEC,    KC_VOLU,                    KC_BRIU,        KC_NO,          KC_NO,          KC_NO,          KC_MPRV,            _______,
-        _______,    KC_NO,          KC_MSTP,        KC_NO,          KC_MPLY,    KC_VOLD,                    KC_BRID,        KC_NO,          KC_NO,          KC_NO,          KC_NO,              KC_NO,
-        _______,    KC_NO,          KC_CALC,        KC_NO,          KC_NO,      KC_MUTE,                    KC_MNXT,        KC_MSEL,        KC_NO,          KC_NO,          KC_NO,              _______,
-                                                    _______,        _______,    _______,                    _______,        _______,        _______
-    ),
+    [MEDIA] = LAYOUT_split_3x6_3(_______, KC_NO, KC_NO, KC_NO, KC_EXEC, KC_VOLU, KC_BRIU, KC_NO, KC_NO, KC_NO, KC_MPRV, _______, _______, KC_NO, KC_MSTP, KC_NO, KC_MPLY, KC_VOLD, KC_BRID, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, _______, KC_NO, KC_CALC, KC_NO, KC_NO, KC_MUTE, KC_MNXT, KC_MSEL, KC_NO, KC_NO, KC_NO, _______, _______, _______, _______, _______, _______, _______),
     // Text
-    [TEXT] = LAYOUT_split_3x6_3(
-        _______,    KC_NO,          KC_NO,          KC_NO,          KC_AGIN,        KC_NO,                      KC_NO,          KC_NO,          KC_NO,          KC_NO,          KC_NO,              _______,
-        KC_STOP,    KC_NO,          KC_SLCT,        KC_NO,          KC_FIND,        KC_NO,                      KC_NO,          KC_NO,          KC_NO,          KC_NO,          KC_NO,              KC_NO,
-        _______,    KC_UNDO,        CUT_MACRO,      COPY_MACRO,     PASTE_MACRO,    KC_NO,                      KC_NO,          KC_APP,         KC_NO,          KC_NO,          KC_NO,              _______,
-                                                    _______,        _______,        _______,                    _______,        _______,        _______
-    ),
+    [TEXT] = LAYOUT_split_3x6_3(_______, KC_NO, KC_NO, KC_NO, KC_AGIN, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, _______, KC_STOP, KC_NO, KC_SLCT, KC_NO, KC_FIND, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, _______, KC_UNDO, CUT_MACRO, COPY_MACRO, PASTE_MACRO, KC_NO, KC_NO, KC_APP, KC_NO, KC_NO, KC_NO, _______, _______, _______, _______, _______, _______, _______),
     // Numpad
-    [NUM_PAD] = LAYOUT_split_3x6_3(
-        KC_NO,      KC_PSLS,        KC_7,           KC_8,           KC_9,           KC_PAST,                    KC_NO,          KC_NO,          KC_NO,          KC_NO,          KC_NO,              _______,
-        _______,    KC_PMNS,        KC_4,           KC_5,           KC_6,           KC_PPLS,                    KC_NO,          KC_NO,          KC_NO,          KC_NO,          KC_NO,              KC_PEQL,
-        _______,    KC_NO,          KC_1,           KC_2,           KC_3,           KC_0,                       KC_NO,          KC_NO,          KC_NO,          KC_NO,          KC_NO,              _______,
-                                                    _______,        _______,        _______,                    _______,        _______,        _______
-    ),
-    [FUNC] = LAYOUT_split_3x6_3(
-        _______,    _______,        _______,        _______,        _______,  _______,                    _______,           _______,        _______,          _______,        _______,            _______,
-        KC_F1,      LGUI_T(KC_F2),  LCTL_T(KC_F3),  LALT_T(KC_F4),  KC_F5,    LSFT_T(KC_F6),              RSFT_T(KC_F7),    KC_F8,         RALT_T(KC_F9),   RCTL_T(KC_F10), RGUI_T(KC_F11),     KC_F12,
-        _______,    _______,        _______,        _______,        _______,    _______,                    _______,        _______,        _______,        _______,        _______,            _______,
-                                                    _______,        _______,    _______,                    _______,        _______,        _______
-    ),
-    [UNICDE] = LAYOUT_split_3x6_3(
-        _______,    _______,        _______,        _______,        _______,    _______,                    _______,    _______,        _______,        _______,        _______,            _______,
-        _______,    _______,        UM(STOP),     MAC_DEG,     UM(PLAY),    _______,                    UC(0x2190), UM(DOWN),        UM(UP),        UM(RIGHT),        _______,            _______,
-        _______,    _______,        _______,        _______,        _______,    _______,                    _______,    _______,        _______,        _______,        _______,            _______,
-                                                    _______,        _______,    _______,                    _______,    _______,        _______
-    ),
+    [NUM_PAD] = LAYOUT_split_3x6_3(KC_NO, KC_PSLS, KC_7, KC_8, KC_9, KC_PAST, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, _______, _______, KC_PMNS, KC_4, KC_5, KC_6, KC_PPLS, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_PEQL, _______, KC_NO, KC_1, KC_2, KC_3, KC_0, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, _______, _______, _______, _______, _______, _______, _______),
+    [FUNC]    = LAYOUT_split_3x6_3(_______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, KC_F1, LGUI_T(KC_F2), LCTL_T(KC_F3), LALT_T(KC_F4), KC_F5, LSFT_T(KC_F6), RSFT_T(KC_F7), KC_F8, RALT_T(KC_F9), RCTL_T(KC_F10), RGUI_T(KC_F11), KC_F12, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______),
+    [UNICDE]  = LAYOUT_split_3x6_3(_______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, UM(STOP), MAC_DEG, UM(PLAY), _______, UC(0x2190), UM(DOWN), UM(UP), UM(RIGHT), _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______),
     // Danger
     //
-    [KB_SETTINGS] = LAYOUT_split_3x6_3(
-        QK_BOOT,    _______,        _______,        _______,        QK_REBOOT,  _______,                    RM_VALU,        RM_HUEU,        RM_SATU,        RM_NEXT,        RM_TOGG,            _______,
-        EE_CLR,     _______,        _______,        _______,        QK_MAKE,    _______,                    RM_VALD,        RM_HUED,        RM_SATD,        RM_PREV,        CK_TOGG,            _______,
-        _______,    _______,        _______,        _______,        _______,    _______,                    _______,        _______,        _______,        _______,        _______,            _______,
-                                                    _______,        _______,    _______,                    _______,        _______,        _______
-    )
-};
-
+    [KB_SETTINGS] = LAYOUT_split_3x6_3(QK_BOOT, _______, _______, _______, QK_REBOOT, _______, RM_VALU, RM_HUEU, RM_SATU, RM_NEXT, RM_TOGG, _______, EE_CLR, _______, _______, _______, QK_MAKE, _______, RM_VALD, RM_HUED, RM_SATD, RM_PREV, CK_TOGG, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______)};
 
 #ifdef OTHER_KEYMAP_C
 #    include OTHER_KEYMAP_C
@@ -169,15 +110,14 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     os_variant_t os = detected_host_os();
 
-    if(isLeader) {
+    if (leaderCount > 0) {
         rgb_matrix_set_color(g_led_config.matrix_co[record->event.key.row][record->event.key.col], RGB_PURPLE);
     }
 
-
-    switch(keycode) {
+    switch (keycode) {
         case COPY_MACRO:
-          if(record->event.pressed) {
-                if(os == OS_MACOS || os == OS_IOS) {
+            if (record->event.pressed) {
+                if (os == OS_MACOS || os == OS_IOS) {
                     SEND_STRING(SS_LCMD("c"));
                 } else {
                     SEND_STRING(SS_LCTL("c"));
@@ -185,8 +125,8 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
             }
             break;
         case PASTE_MACRO:
-          if(record->event.pressed) {
-                if(os == OS_MACOS || os == OS_IOS) {
+            if (record->event.pressed) {
+                if (os == OS_MACOS || os == OS_IOS) {
                     SEND_STRING(SS_LCMD("p"));
                 } else {
                     SEND_STRING(SS_LCTL("v"));
@@ -194,8 +134,8 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
             }
             break;
         case CUT_MACRO:
-          if(record->event.pressed) {
-                if(os == OS_MACOS || os == OS_IOS) {
+            if (record->event.pressed) {
+                if (os == OS_MACOS || os == OS_IOS) {
                     SEND_STRING(SS_LCMD("x"));
                 } else {
                     SEND_STRING(SS_LCTL("x"));
@@ -203,220 +143,472 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
             }
             break;
         case MAC_DEG:
-            if(record->event.pressed) {
-               send_unicode_string("°");
+            if (record->event.pressed) {
+                send_unicode_string("°");
             }
+            break;
     }
     return true;
 }
 
 bool rgb_matrix_indicators_user(void) {
-    uint8_t cur = get_highest_layer(layer_state);
+    uint8_t        cur  = get_highest_layer(layer_state);
     static uint8_t prev = 0;
 
-    if(isLeader) {
-
+    if (leaderCount > 0) {
         rgb_matrix_set_color_all(RGB_OFF);
         rgb_matrix_set_color(g_led_config.matrix_co[3][1], RGB_PURPLE);
 
         return false;
     }
 
-
-    if(cur == prev) {
+    if (cur == prev) {
         return false;
     }
 
+    switch (cur) {
+        case KB_SETTINGS:
+            // Admin
+            rgb_matrix_set_color_all(RGB_RED);
+            break;
 
-        switch(cur) {
-            case KB_SETTINGS:
-                // Admin
-                rgb_matrix_set_color_all(RGB_RED);
-                break;
+        case UNICDE:
+            rgb_matrix_set_color_all(RGB_YELLOW);
+            break;
+        case FUNC:
+            rgb_matrix_set_color_all(RGB_OFF);
+            for (uint8_t col = 0; col < MATRIX_COLS; ++col) {
+                rgb_matrix_set_color(g_led_config.matrix_co[1][col], RGB_GREEN);
+            }
+            break;
+        case NUM_PAD:
+            // Numpad
+            rgb_matrix_set_color_all(RGB_OFF);
 
-            case UNICDE:
-                rgb_matrix_set_color_all(RGB_YELLOW);
-                break;
-            case FUNC:
-                rgb_matrix_set_color_all(RGB_OFF);
-                for(uint8_t col = 0; col < MATRIX_COLS; ++col) {
-                    rgb_matrix_set_color(g_led_config.matrix_co[1][col], RGB_GREEN);
-                }
-                break;
-            case NUM_PAD:
-                // Numpad
-                rgb_matrix_set_color_all(RGB_OFF);
+            // Numbers
+            rgb_matrix_set_color(g_led_config.matrix_co[0][2], RGB_BLUE);
+            rgb_matrix_set_color(g_led_config.matrix_co[0][3], RGB_BLUE);
+            rgb_matrix_set_color(g_led_config.matrix_co[0][4], RGB_BLUE);
+            rgb_matrix_set_color(g_led_config.matrix_co[1][2], RGB_BLUE);
+            rgb_matrix_set_color(g_led_config.matrix_co[1][3], RGB_BLUE);
+            rgb_matrix_set_color(g_led_config.matrix_co[1][4], RGB_BLUE);
+            rgb_matrix_set_color(g_led_config.matrix_co[2][2], RGB_BLUE);
+            rgb_matrix_set_color(g_led_config.matrix_co[2][3], RGB_BLUE);
+            rgb_matrix_set_color(g_led_config.matrix_co[2][4], RGB_BLUE);
+            rgb_matrix_set_color(g_led_config.matrix_co[2][5], RGB_BLUE);
 
-                // Numbers
-                rgb_matrix_set_color(g_led_config.matrix_co[0][2], RGB_BLUE);
-                rgb_matrix_set_color(g_led_config.matrix_co[0][3], RGB_BLUE);
-                rgb_matrix_set_color(g_led_config.matrix_co[0][4], RGB_BLUE);
-                rgb_matrix_set_color(g_led_config.matrix_co[1][2], RGB_BLUE);
-                rgb_matrix_set_color(g_led_config.matrix_co[1][3], RGB_BLUE);
-                rgb_matrix_set_color(g_led_config.matrix_co[1][4], RGB_BLUE);
-                rgb_matrix_set_color(g_led_config.matrix_co[2][2], RGB_BLUE);
-                rgb_matrix_set_color(g_led_config.matrix_co[2][3], RGB_BLUE);
-                rgb_matrix_set_color(g_led_config.matrix_co[2][4], RGB_BLUE);
-                rgb_matrix_set_color(g_led_config.matrix_co[2][5], RGB_BLUE);
+            // rgb_matrix_set_color(g_led_config.matrix_co[0][5], RGB_GREEN);
+            // rgb_matrix_set_color(g_led_config.matrix_co[1][5], RGB_GREEN);
+            // rgb_matrix_set_color(g_led_config.matrix_co[0][1], RGB_RED);
+            // rgb_matrix_set_color(g_led_config.matrix_co[0][1], RGB_RED);
 
+            rgb_matrix_set_color(g_led_config.matrix_co[3][2], RGB_YELLOW);
+            break;
+        case TEXT:
+            // Text
+            rgb_matrix_set_color_all(RGB_OFF);
+            rgb_matrix_set_color(g_led_config.matrix_co[0][4], RGB_CHARTREUSE);
+            rgb_matrix_set_color(g_led_config.matrix_co[1][0], RGB_RED);
+            rgb_matrix_set_color(g_led_config.matrix_co[1][2], RGB_YELLOW);
+            rgb_matrix_set_color(g_led_config.matrix_co[1][4], RGB_ORANGE);
+            rgb_matrix_set_color(g_led_config.matrix_co[2][1], RGB_RED);
+            rgb_matrix_set_color(g_led_config.matrix_co[2][2], RGB_YELLOW);
+            rgb_matrix_set_color(g_led_config.matrix_co[2][3], RGB_YELLOW);
+            rgb_matrix_set_color(g_led_config.matrix_co[2][4], RGB_GREEN);
 
-                // rgb_matrix_set_color(g_led_config.matrix_co[0][5], RGB_GREEN);
-                // rgb_matrix_set_color(g_led_config.matrix_co[1][5], RGB_GREEN);
-                // rgb_matrix_set_color(g_led_config.matrix_co[0][1], RGB_RED);
-                // rgb_matrix_set_color(g_led_config.matrix_co[0][1], RGB_RED);
+            rgb_matrix_set_color(g_led_config.matrix_co[6][4], RGB_ORANGE);
+            break;
+        case MEDIA:
+            // Media
+            rgb_matrix_set_color_all(RGB_OFF);
 
-                rgb_matrix_set_color(g_led_config.matrix_co[3][2], RGB_YELLOW);
-                break;
-            case TEXT:
-                // Text
-                rgb_matrix_set_color_all(RGB_OFF);
-                rgb_matrix_set_color(g_led_config.matrix_co[0][4], RGB_CHARTREUSE);
-                rgb_matrix_set_color(g_led_config.matrix_co[1][0], RGB_RED);
-                rgb_matrix_set_color(g_led_config.matrix_co[1][2], RGB_YELLOW);
-                rgb_matrix_set_color(g_led_config.matrix_co[1][4], RGB_ORANGE);
-                rgb_matrix_set_color(g_led_config.matrix_co[2][1], RGB_RED);
-                rgb_matrix_set_color(g_led_config.matrix_co[2][2], RGB_YELLOW);
-                rgb_matrix_set_color(g_led_config.matrix_co[2][3], RGB_YELLOW);
-                rgb_matrix_set_color(g_led_config.matrix_co[2][4], RGB_GREEN);
+            // Music
+            rgb_matrix_set_color(g_led_config.matrix_co[1][4], RGB_GREEN);
+            rgb_matrix_set_color(g_led_config.matrix_co[1][2], RGB_RED);
+            rgb_matrix_set_color(g_led_config.matrix_co[4][1], RGB_YELLOW);
+            rgb_matrix_set_color(g_led_config.matrix_co[6][5], RGB_YELLOW);
 
-                rgb_matrix_set_color(g_led_config.matrix_co[6][4], RGB_ORANGE);
-                break;
-           case MEDIA:
-                // Media
-                rgb_matrix_set_color_all(RGB_OFF);
+            // Volume
+            // rgb_matrix_set_color(g_led_config.matrix_co[0][5], RGB_GREEN);
+            // rgb_matrix_set_color(g_led_config.matrix_co[1][5], RGB_TURQUOISE);
+            // rgb_matrix_set_color(g_led_config.matrix_co[2][5], RGB_RED);
 
-                // Music
-                rgb_matrix_set_color(g_led_config.matrix_co[1][4], RGB_GREEN);
-                rgb_matrix_set_color(g_led_config.matrix_co[1][2], RGB_RED);
-                rgb_matrix_set_color(g_led_config.matrix_co[4][1], RGB_YELLOW);
-                rgb_matrix_set_color(g_led_config.matrix_co[6][5], RGB_YELLOW);
+            // Exec
+            // rgb_matrix_set_color(g_led_config.matrix_co[0][4], RGB_ORANGE);
+            // rgb_matrix_set_color(g_led_config.matrix_co[2][2], RGB_ORANGE);
 
+            // Screen
+            rgb_matrix_set_color(g_led_config.matrix_co[4][5], RGB_GREEN);
+            rgb_matrix_set_color(g_led_config.matrix_co[5][5], RGB_TURQUOISE);
 
-                // Volume
-                // rgb_matrix_set_color(g_led_config.matrix_co[0][5], RGB_GREEN);
-                // rgb_matrix_set_color(g_led_config.matrix_co[1][5], RGB_TURQUOISE);
-                // rgb_matrix_set_color(g_led_config.matrix_co[2][5], RGB_RED);
+            break;
+        case MOUSE:
+            // Mouse
+            rgb_matrix_set_color_all(RGB_OFF);
 
+            // Mouse Accelleration
+            // rgb_matrix_set_color(g_led_config.matrix_co[0][0], RGB_GREEN);
+            // rgb_matrix_set_color(g_led_config.matrix_co[0][1], RGB_GREEN);
+            // rgb_matrix_set_color(g_led_config.matrix_co[0][2], RGB_GREEN);
 
-                // Exec
-                // rgb_matrix_set_color(g_led_config.matrix_co[0][4], RGB_ORANGE);
-                // rgb_matrix_set_color(g_led_config.matrix_co[2][2], RGB_ORANGE);
+            // Mouse Movement
+            rgb_matrix_set_color(g_led_config.matrix_co[0][3], RGB_PURPLE);
+            rgb_matrix_set_color(g_led_config.matrix_co[1][2], RGB_PURPLE);
+            rgb_matrix_set_color(g_led_config.matrix_co[1][3], RGB_PURPLE);
+            rgb_matrix_set_color(g_led_config.matrix_co[1][4], RGB_PURPLE);
 
+            // Mouse Buttons 1-3
+            // rgb_matrix_set_color(g_led_config.matrix_co[7][0], RGB_PURPLE);
+            // rgb_matrix_set_color(g_led_config.matrix_co[7][1], RGB_PURPLE);
+            // rgb_matrix_set_color(g_led_config.matrix_co[7][2], RGB_PURPLE);
 
-                // Screen
-                rgb_matrix_set_color(g_led_config.matrix_co[4][5], RGB_GREEN);
-                rgb_matrix_set_color(g_led_config.matrix_co[5][5], RGB_TURQUOISE);
+            // Mouse Scroll
+            // rgb_matrix_set_color(g_led_config.matrix_co[5][5], RGB_PURPLE);
+            // rgb_matrix_set_color(g_led_config.matrix_co[5][4], RGB_PURPLE);
+            // rgb_matrix_set_color(g_led_config.matrix_co[5][3], RGB_PURPLE);
+            // rgb_matrix_set_color(g_led_config.matrix_co[5][2], RGB_PURPLE);
+            break;
+        case MOTION:
+            // Motions
+            rgb_matrix_set_color_all(RGB_OFF);
+            // rgb_matrix_set_color(g_led_config.matrix_co[4][0], RGB_RED);
 
+            for (uint8_t col = 2; col < MATRIX_COLS; ++col) {
+                rgb_matrix_set_color(g_led_config.matrix_co[5][col], RGB_YELLOW);
+            }
+            // rgb_matrix_set_color(g_led_config.matrix_co[4][1], RGB_AZURE);
+            break;
+        case SYMB:
+            // Symbols And Number Row
+            rgb_matrix_set_color_all(RGB_OFF);
+            // for(uint8_t col = 1; col < MATRIX_COLS; ++col) {
+            //     rgb_matrix_set_color(g_led_config.matrix_co[0][col], RGB_BLUE);
+            // }
+            // for(uint8_t col = 1; col < MATRIX_COLS; ++col) {
+            //     rgb_matrix_set_color(g_led_config.matrix_co[4][col], RGB_BLUE);
+            // }
+            // rgb_matrix_set_color(g_led_config.matrix_co[4][0], RGB_GOLD);
 
-                break;
-            case MOUSE:
-                // Mouse
-                rgb_matrix_set_color_all(RGB_OFF);
+            // rgb_matrix_set_color(g_led_config.matrix_co[0][MATRIX_COLS-1], RGB_GOLD);
 
-                // Mouse Accelleration
-                // rgb_matrix_set_color(g_led_config.matrix_co[0][0], RGB_GREEN);
-                // rgb_matrix_set_color(g_led_config.matrix_co[0][1], RGB_GREEN);
-                // rgb_matrix_set_color(g_led_config.matrix_co[0][2], RGB_GREEN);
+            for (uint8_t col = 1; col < MATRIX_COLS; ++col) {
+                rgb_matrix_set_color(g_led_config.matrix_co[1][col], RGB_GOLD);
+                rgb_matrix_set_color(g_led_config.matrix_co[5][col], RGB_GOLD);
+            }
+            rgb_matrix_set_color(g_led_config.matrix_co[5][0], RGB_GOLD);
 
-                // Mouse Movement
-                rgb_matrix_set_color(g_led_config.matrix_co[0][3], RGB_PURPLE);
-                rgb_matrix_set_color(g_led_config.matrix_co[1][2], RGB_PURPLE);
-                rgb_matrix_set_color(g_led_config.matrix_co[1][3], RGB_PURPLE);
-                rgb_matrix_set_color(g_led_config.matrix_co[1][4], RGB_PURPLE);
+            for (uint8_t col = 4; col < MATRIX_COLS; ++col) {
+                rgb_matrix_set_color(g_led_config.matrix_co[2][col], RGB_GOLD);
+                rgb_matrix_set_color(g_led_config.matrix_co[6][col], RGB_GOLD);
+            }
 
-                // Mouse Buttons 1-3
-                // rgb_matrix_set_color(g_led_config.matrix_co[7][0], RGB_PURPLE);
-                // rgb_matrix_set_color(g_led_config.matrix_co[7][1], RGB_PURPLE);
-                // rgb_matrix_set_color(g_led_config.matrix_co[7][2], RGB_PURPLE);
-
-
-                // Mouse Scroll
-                // rgb_matrix_set_color(g_led_config.matrix_co[5][5], RGB_PURPLE);
-                // rgb_matrix_set_color(g_led_config.matrix_co[5][4], RGB_PURPLE);
-                // rgb_matrix_set_color(g_led_config.matrix_co[5][3], RGB_PURPLE);
-                // rgb_matrix_set_color(g_led_config.matrix_co[5][2], RGB_PURPLE);
-                break;
-            case MOTION:
-                // Motions
-                rgb_matrix_set_color_all(RGB_OFF);
-                // rgb_matrix_set_color(g_led_config.matrix_co[4][0], RGB_RED);
-
-                for(uint8_t col = 2; col < MATRIX_COLS; ++col) {
-                    rgb_matrix_set_color(g_led_config.matrix_co[5][col], RGB_YELLOW);
-                }
-                // rgb_matrix_set_color(g_led_config.matrix_co[4][1], RGB_AZURE);
-                break;
-            case SYMB:
-                // Symbols And Number Row
-                rgb_matrix_set_color_all(RGB_OFF);
-                // for(uint8_t col = 1; col < MATRIX_COLS; ++col) {
-                //     rgb_matrix_set_color(g_led_config.matrix_co[0][col], RGB_BLUE);
-                // }
-                // for(uint8_t col = 1; col < MATRIX_COLS; ++col) {
-                //     rgb_matrix_set_color(g_led_config.matrix_co[4][col], RGB_BLUE);
-                // }
-                // rgb_matrix_set_color(g_led_config.matrix_co[4][0], RGB_GOLD);
-
-
-                // rgb_matrix_set_color(g_led_config.matrix_co[0][MATRIX_COLS-1], RGB_GOLD);
-
-                for(uint8_t col = 1; col < MATRIX_COLS; ++col) {
-                    rgb_matrix_set_color(g_led_config.matrix_co[1][col], RGB_GOLD);
-                    rgb_matrix_set_color(g_led_config.matrix_co[5][col], RGB_GOLD);
-                }
-                rgb_matrix_set_color(g_led_config.matrix_co[5][0], RGB_GOLD);
-
-                for(uint8_t col = 4; col < MATRIX_COLS; ++col) {
-                    rgb_matrix_set_color(g_led_config.matrix_co[2][col], RGB_GOLD);
-                    rgb_matrix_set_color(g_led_config.matrix_co[6][col], RGB_GOLD);
-                }
-
-                break;
-            default:
-               break;
-        }
+            break;
+        default:
+            break;
+    }
     return false;
 }
 
 void leader_start_user(void) {
-    isLeader = true;
+    leaderCount = 1;
 }
 
-// boo leader_add_user(uint16_t keycode) {
-//
-// }
+bool leader_add_user(uint16_t keycode) {
+    ++leaderCount;
+    oled_set_cursor(0, 5 + leaderCount);
+    switch (leaderCount) {
+        case 1:
+            oled_write_P(PSTR("1"), false);
+            break;
+        case 2:
+            oled_write_P(PSTR("2"), false);
+            break;
+        case 3:
+            oled_write_P(PSTR("3"), false);
+            break;
+        case 4:
+            oled_write_P(PSTR("4"), false);
+            break;
+    }
+    return false;
+}
 
 void leader_end_user(void) {
-    isLeader = false;
-    if(leader_sequence_two_keys(KC_L, KC_B)) {
+    if (leader_sequence_two_keys(KC_L, KC_B)) {
         layer_move(BASE);
-    } else if(leader_sequence_three_keys(KC_L, KC_F, KC_N)) {
+    } else if (leader_sequence_two_keys(KC_L, KC_F)) {
         layer_on(FUNC);
-    } else if(leader_sequence_two_keys(KC_L, KC_U)) {
+        on_layer_change();
+    } else if (leader_sequence_two_keys(KC_L, KC_U)) {
         layer_on(UNICDE);
-    } else if(leader_sequence_three_keys(KC_L, KC_N, KC_P)) {
+        on_layer_change();
+    } else if (leader_sequence_two_keys(KC_L, KC_N)) {
         layer_on(NUM_PAD);
-    } else if(leader_sequence_three_keys(KC_L, KC_N, KC_R)) {
+        on_layer_change();
+    } else if (leader_sequence_two_keys(KC_L, KC_S)) {
         layer_on(SYMB);
-    } else if(leader_sequence_two_keys(KC_L, KC_T)) {
+        on_layer_change();
+    } else if (leader_sequence_two_keys(KC_L, KC_T)) {
         layer_on(TEXT);
-    } else if(leader_sequence_two_keys(KC_M, KC_U)) {
-        layer_on(MEDIA);
-    } else if(leader_sequence_two_keys(KC_M, KC_O)) {
-        layer_on(MOTION);
-    } else if(leader_sequence_two_keys(KC_M, KC_S)) {
-        layer_on(MOUSE);
+        on_layer_change();
     }
+    // else if (leader_sequence_two_keys(KC_M, KC_U)) {
+    //     layer_on(MEDIA);
+    // } else if (leader_sequence_two_keys(KC_M, KC_O)) {
+    //     layer_on(MOTION);
+    // } else if (leader_sequence_two_keys(KC_M, KC_S)) {
+    //     layer_on(MOUSE);
+    // }
 
     // TODO match up with window management shortcuts and make MacOS aware
     // where possible.
-    else if(leader_sequence_three_keys(KC_W, KC_M, KC_H)) {
+    else if (leader_sequence_three_keys(KC_W, KC_M, KC_H)) {
         SEND_STRING(SS_LGUI(SS_LSFT("h")));
-    } else if(leader_sequence_three_keys(KC_W, KC_M, KC_L)) {
+    } else if (leader_sequence_three_keys(KC_W, KC_M, KC_L)) {
         SEND_STRING(SS_LGUI(SS_LSFT("l")));
-    } else if(leader_sequence_three_keys(KC_W, KC_M, KC_J)) {
+    } else if (leader_sequence_three_keys(KC_W, KC_M, KC_J)) {
         SEND_STRING(SS_LGUI(SS_LSFT("j")));
-    } else if(leader_sequence_three_keys(KC_W, KC_M, KC_K)) {
+    } else if (leader_sequence_three_keys(KC_W, KC_M, KC_K)) {
         SEND_STRING(SS_LGUI(SS_LSFT("k")));
     }
+    leaderCount = 0;
+}
+
+td_state_t cur_dance(tap_dance_state_t *state) {
+    oled_set_cursor(0, 7);
+    if (state->count == 1) {
+        if (state->interrupted || state->pressed) {
+            oled_write_ln_P(PSTR("TD t"), false);
+            return TD_SINGLE_TAP;
+        } else {
+            oled_write_ln_P(PSTR("TD h"), false);
+            return TD_SINGLE_HOLD;
+        }
+    } else if (state->count == 2) {
+        if (state->interrupted) {
+            return TD_DOUBLE_SINGLE_TAP;
+            oled_write_ln_P(PSTR("TD t+t"), false);
+        } else if (state->pressed) {
+            oled_write_ln_P(PSTR("TD th"), false);
+            return TD_DOUBLE_HOLD;
+        } else {
+            oled_write_ln_P(PSTR("TD tt"), false);
+            return TD_DOUBLE_TAP;
+        }
+    }
+
+    if (state->count == 3) {
+        if (state->interrupted || state->pressed) {
+            oled_write_ln_P(PSTR("TD ttt"), false);
+            return TD_TRIPLE_TAP;
+        } else {
+            oled_write_ln_P(PSTR("TD tth"), false);
+            return TD_TRIPLE_HOLD;
+        }
+    }
+
+    return TD_UNKNOWN;
+}
+
+static td_tap_t m_tap_state = {
+    .is_press_action = true,
+    .state           = TD_NONE,
+};
+
+void td_m_menu_fin(tap_dance_state_t *state, void *user_data) {
+    m_tap_state.state = cur_dance(state);
+    switch (m_tap_state.state) {
+        case TD_SINGLE_TAP:
+            register_code(KC_M);
+            oled_set_cursor(0, 8);
+            oled_write_ln_P(PSTR("TD M"), false);
+            break;
+        case TD_SINGLE_HOLD:
+            if (layer_state_is(MEDIA)) {
+                layer_off(MEDIA);
+                on_layer_change();
+
+            } else {
+                layer_on(MEDIA);
+                on_layer_change();
+                oled_set_cursor(1, 8);
+                oled_write_ln_P(PSTR("TD Media"), false);
+            }
+
+            break;
+        case TD_DOUBLE_SINGLE_TAP:
+            tap_code(KC_M);
+            register_code(KC_M);
+            oled_set_cursor(0, 8);
+            oled_write_ln_P(PSTR("TD M+M"), false);
+            break;
+        case TD_DOUBLE_TAP:
+            register_code(KC_APP);
+            oled_set_cursor(0, 8);
+            oled_write_ln_P(PSTR("TD Menu"), false);
+            break;
+        default:
+            oled_set_cursor(0, 8);
+            oled_write_ln_P(PSTR("TD ?"), false);
+
+            m_tap_state.state = TD_UNKNOWN;
+            break;
+    }
+}
+
+void td_m_menu_reset(tap_dance_state_t *state, void *user_data) {
+    switch (m_tap_state.state) {
+        case TD_SINGLE_TAP:
+            unregister_code(KC_M);
+            break;
+        case TD_SINGLE_HOLD:
+            if (layer_state_is(MEDIA)) {
+                layer_off(MEDIA);
+                on_layer_change();
+            }
+            break;
+        case TD_DOUBLE_TAP:
+            unregister_code(KC_APP);
+            break;
+        default:
+            break;
+    }
+    m_tap_state.state = TD_NONE;
+}
+void td_ret_base(tap_dance_state_t *state, void *user_data) {
+    if (state->count == 1) {
+        leader_start();
+    } else if (state->count == 2) {
+        layer_move(BASE);
+        on_layer_change();
+    }
+}
+
+tap_dance_action_t tap_dance_actions[] = {
+    [TD_RET_BASE] = ACTION_TAP_DANCE_FN(td_ret_base),
+    [TD_CUR_OP]   = ACTION_TAP_DANCE_DOUBLE(KC_LCBR, KC_LBRC),
+    [TD_CUR_CL]   = ACTION_TAP_DANCE_DOUBLE(KC_RCBR, KC_RBRC),
+    [TD_M_MENU]   = ACTION_TAP_DANCE_FN_ADVANCED(NULL, td_m_menu_fin, td_m_menu_reset),
+
+};
+
+void on_layer_change(void) {
+    // This function is called whenever the layer changes.
+    // You can use it to update the OLED display or perform other actions.
+    if (is_keyboard_master()) {
+        master_oled_render();
+    }
+    rgb_matrix_indicators_user();
+}
+
+uint16_t get_tapping_term(uint16_t keycode, keyrecord_t *record) {
+    switch (keycode) {
+        case QK_TAP_DANCE ... QK_TAP_DANCE_MAX:
+            return 555; // Adjust the tapping term for the tap dance key
+        default:
+            return TAPPING_TERM;
+    }
+}
+oled_rotation_t oled_init_user(oled_rotation_t rotation) {
+    // Set the OLED rotation
+    return OLED_ROTATION_270;
+}
+
+void master_oled_render(void) {
+    oled_clear();
+    oled_set_cursor(0, 0);
+    oled_write_ln_P(PSTR("Layer"), false);
+
+    switch (get_highest_layer(layer_state)) {
+        case BASE:
+            oled_write_ln_P(PSTR("Base"), false);
+            break;
+        case SYMB:
+            oled_write_ln_P(PSTR("Symbol"), false);
+            break;
+        case MOTION:
+            oled_write_ln_P(PSTR("Motion"), false);
+            break;
+        case MOUSE:
+            oled_write_ln_P(PSTR("Mouse"), false);
+            break;
+        case MEDIA:
+            oled_write_ln_P(PSTR("Media"), false);
+            break;
+        case TEXT:
+            oled_write_ln_P(PSTR("Text"), false);
+            break;
+        case NUM_PAD:
+            oled_write_ln_P(PSTR("Num Pad"), false);
+            break;
+        case FUNC:
+            oled_write_ln_P(PSTR("Function"), false);
+            break;
+        case UNICDE:
+            oled_write_ln_P(PSTR("Unicode"), false);
+            break;
+        case KB_SETTINGS:
+            oled_write_ln_P(PSTR("Settings"), false);
+            break;
+    }
+    if (leaderCount > 0) {
+        oled_set_cursor(0, 5);
+        oled_write_ln_P(PSTR("Lead"), false);
+    }
+    oled_set_cursor(0, 14);
+    switch (detected_host_os()) {
+        case OS_MACOS:
+            oled_write_ln_P(PSTR("MacOS"), false);
+            break;
+        case OS_LINUX:
+            oled_write_ln_P(PSTR("Linux"), false);
+            break;
+        case OS_WINDOWS:
+            oled_write_ln_P(PSTR("Windows"), false);
+            break;
+        case OS_IOS:
+            oled_write_ln_P(PSTR("iOS"), false);
+            break;
+        default:
+            oled_write_ln_P(PSTR("Unknown"), false);
+            break;
+    }
+    if (m_tap_state.state != TD_NONE) {
+        oled_set_cursor(0, 7);
+        switch (m_tap_state.state) {
+            case TD_SINGLE_TAP:
+                oled_write_ln_P(PSTR("TD t"), false);
+                break;
+            case TD_SINGLE_HOLD:
+                oled_write_ln_P(PSTR("TD h"), false);
+                break;
+            case TD_DOUBLE_TAP:
+                oled_write_ln_P(PSTR("TD tt"), false);
+                break;
+            case TD_DOUBLE_HOLD:
+                oled_write_ln_P(PSTR("TD th"), false);
+                break;
+            case TD_DOUBLE_SINGLE_TAP:
+                oled_write_ln_P(PSTR("TD t+t"), false);
+                break;
+            case TD_TRIPLE_TAP:
+                oled_write_ln_P(PSTR("TD ttt"), false);
+                break;
+            case TD_TRIPLE_HOLD:
+                oled_write_ln_P(PSTR("TD tth"), false);
+                break;
+            default:
+                oled_write_ln_P(PSTR("TD ?"), false);
+                break;
+        }
+    }
+    oled_scroll_left();
+}
+
+bool oled_task_user(void) {
+    if (is_keyboard_master()) {
+        master_oled_render();
+    }
+
+    return false;
 }

@@ -21,7 +21,7 @@
 // https://docs.qmk.fm/tap_hold
 
 #define TAPPING_TERM 250
-// #define TAPPING_TERM_PER_KEY
+#define TAPPING_TERM_PER_KEY
 //define WPM_ENABLE = yes
 
 #define ENABLE_COMPILE_KEYCODE
