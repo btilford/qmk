@@ -22,13 +22,11 @@ typedef struct {
     td_state_t state;
 } td_tap_t;
 
-
 void       master_oled_render(void);
 td_state_t cur_dance(tap_dance_state_t *state);
 void       td_m_menu_fin(tap_dance_state_t *state, void *user_data);
 void       td_m_menu_reset(tap_dance_state_t *state, void *user_data);
 void       on_layer_change(void);
-
 
 uint8_t leaderCount = 0;
 
@@ -69,10 +67,14 @@ const key_override_t backspace_delete   = ko_make_basic(MOD_MASK_SHIFT, KC_BSPC,
 const key_override_t *key_overrides[] = {&tilde_esc_override, &grave_esc_override, &backspace_delete};
 
 enum macro_codes {
-    COPY_MACRO = SAFE_RANGE,
-    PASTE_MACRO,
-    CUT_MACRO,
-    MAC_DEG,
+    COPY_MAC = SAFE_RANGE,
+    PASTE_MAC,
+    CUT_MAC,
+    UNDO_MAC,
+    SEL_LN_MAC,
+    SEL_WD_MAC,
+    SEL_ALL_MAC,
+    DEGR_MAC,
 };
 
 /* THIS FILE WAS GENERATED!
@@ -88,17 +90,20 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     [SYMB] = LAYOUT_split_3x6_3(_______, KC_1, KC_2, KC_3, KC_4, KC_5, KC_6, KC_7, KC_8, KC_9, KC_0, _______, _______, KC_EXLM, KC_AT, KC_HASH, KC_DLR, KC_PERC, KC_CIRC, KC_AMPR, KC_ASTR, KC_LPRN, KC_RPRN, KC_BSLS, _______, _______, _______, KC_LSFT, KC_MINS, TD(TD_CUR_OP), TD(TD_CUR_CL), KC_EQL, KC_RSFT, _______, _______, _______, _______, _______, _______, _______, _______, _______),
 
     // Motion
-    [MOTION] = LAYOUT_split_3x6_3(KC_GRV, _______, _______, KC_MAIL, KC_AGIN, _______, KC_HOME, KC_PGDN, KC_PGUP, KC_INS, KC_PSCR, KC_DEL, _______, KC_LSFT, KC_LCTL, KC_LALT, _______, _______, KC_LEFT, KC_DOWN, KC_UP, KC_RGHT, KC_END, RSFT(_______), _______, KC_UNDO, CUT_MACRO, COPY_MACRO, KC_PSTE, _______, _______, KC_APP, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______),
+    [MOTION] = LAYOUT_split_3x6_3(_______, _______, _______, KC_MAIL, KC_AGIN, _______, KC_HOME, KC_PGDN, KC_PGUP, KC_INS, KC_PSCR, KC_DEL, KC_LSFT, _______, _______, _______, _______, _______, KC_LEFT, KC_DOWN, KC_UP, KC_RGHT, KC_END, RSFT(_______), _______, UNDO_MAC, CUT_MAC, COPY_MAC, KC_PSTE, _______, _______, KC_APP, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______),
     // Mouse
     [MOUSE] = LAYOUT_split_3x6_3(MS_ACL0, MS_ACL1, MS_ACL2, MS_UP, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, MS_LEFT, MS_DOWN, MS_RGHT, _______, MS_WHLL, MS_WHLD, MS_WHLU, MS_WHLR, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, MS_BTN1, MS_BTN2, MS_BTN3),
     // Media
     [MEDIA] = LAYOUT_split_3x6_3(_______, KC_NO, KC_NO, KC_NO, KC_EXEC, KC_VOLU, KC_BRIU, KC_NO, KC_NO, KC_NO, KC_MPRV, _______, _______, KC_NO, KC_MSTP, KC_NO, KC_MPLY, KC_VOLD, KC_BRID, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, _______, KC_NO, KC_CALC, KC_NO, KC_NO, KC_MUTE, KC_MNXT, KC_MSEL, KC_NO, KC_NO, KC_NO, _______, _______, _______, _______, _______, _______, _______),
     // Text
-    [TEXT] = LAYOUT_split_3x6_3(_______, KC_NO, KC_NO, KC_NO, KC_AGIN, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, _______, KC_STOP, KC_NO, KC_SLCT, KC_NO, KC_FIND, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, _______, KC_UNDO, CUT_MACRO, COPY_MACRO, PASTE_MACRO, KC_NO, KC_NO, KC_APP, KC_NO, KC_NO, KC_NO, _______, _______, _______, _______, _______, _______, _______),
+    [TEXT] = LAYOUT_split_3x6_3(_______, SEL_WD_MAC, _______, _______, _______, _______,                    _______, _______, _______, _______, _______, _______,
+                                _______, _______, _______, _______, _______, _______,                    _______, _______, _______, SEL_LN_MAC, _______, _______,
+                                _______, UNDO_MAC, CUT_MAC, COPY_MAC, PASTE_MAC, _______,                 _______, KC_APP, _______, _______, _______, _______,
+                                                                _______, _______, _______,              _______, _______, _______),
     // Numpad
-    [NUM_PAD] = LAYOUT_split_3x6_3(KC_NO, KC_PSLS, KC_7, KC_8, KC_9, KC_PAST, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, _______, _______, KC_PMNS, KC_4, KC_5, KC_6, KC_PPLS, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_PEQL, _______, KC_NO, KC_1, KC_2, KC_3, KC_0, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, _______, _______, _______, _______, _______, _______, _______),
+    [NUM_PAD] = LAYOUT_split_3x6_3(KC_NO, KC_PSLS, KC_7, KC_8, KC_9, KC_PAST, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, _______, _______, KC_PMNS, KC_4, KC_5, KC_6, KC_PPLS, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_PEQL, _______, KC_NO, KC_1, KC_2, KC_3, KC_0, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______),
     [FUNC]    = LAYOUT_split_3x6_3(_______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, KC_F1, LGUI_T(KC_F2), LCTL_T(KC_F3), LALT_T(KC_F4), KC_F5, LSFT_T(KC_F6), RSFT_T(KC_F7), KC_F8, RALT_T(KC_F9), RCTL_T(KC_F10), RGUI_T(KC_F11), KC_F12, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______),
-    [UNICDE]  = LAYOUT_split_3x6_3(_______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, UM(STOP), MAC_DEG, UM(PLAY), _______, UC(0x2190), UM(DOWN), UM(UP), UM(RIGHT), _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______),
+    [UNICDE]  = LAYOUT_split_3x6_3(_______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, UM(STOP), DEGR_MAC, UM(PLAY), _______, UC(0x2190), UM(DOWN), UM(UP), UM(RIGHT), _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______),
     // Danger
     //
     [KB_SETTINGS] = LAYOUT_split_3x6_3(QK_BOOT, _______, _______, _______, QK_REBOOT, _______, RM_VALU, RM_HUEU, RM_SATU, RM_NEXT, RM_TOGG, _______, EE_CLR, _______, _______, _______, QK_MAKE, _______, RM_VALD, RM_HUED, RM_SATD, RM_PREV, CK_TOGG, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______)};
@@ -115,38 +120,75 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     }
 
     switch (keycode) {
-        case COPY_MACRO:
+        case COPY_MAC:
             if (record->event.pressed) {
                 if (os == OS_MACOS || os == OS_IOS) {
-                    SEND_STRING(SS_LCMD("c"));
+                    SEND_STRING(SS_LCMD(SS_TAP(X_C)));
                 } else {
                     SEND_STRING(SS_LCTL("c"));
                 }
             }
             break;
-        case PASTE_MACRO:
+        case PASTE_MAC:
             if (record->event.pressed) {
                 if (os == OS_MACOS || os == OS_IOS) {
-                    SEND_STRING(SS_LCMD("p"));
+                    SEND_STRING(SS_LCMD(SS_TAP(X_V)));
                 } else {
                     SEND_STRING(SS_LCTL("v"));
                 }
             }
             break;
-        case CUT_MACRO:
+        case CUT_MAC:
             if (record->event.pressed) {
                 if (os == OS_MACOS || os == OS_IOS) {
-                    SEND_STRING(SS_LCMD("x"));
+                    SEND_STRING(SS_LCMD(SS_TAP(X_X)));
                 } else {
                     SEND_STRING(SS_LCTL("x"));
                 }
             }
             break;
-        case MAC_DEG:
+        case UNDO_MAC:
+            if (record->event.pressed) {
+                if (os == OS_MACOS || os == OS_IOS) {
+                    SEND_STRING(SS_LCMD(SS_TAP(X_Z)));
+                } else {
+                    SEND_STRING(SS_LCTL("z"));
+                }
+            }
+            break;
+        case DEGR_MAC:
             if (record->event.pressed) {
                 send_unicode_string("°");
             }
             break;
+        case SEL_LN_MAC:
+            if (record->event.pressed) {
+                if (os == OS_MACOS || os == OS_IOS) {
+                    SEND_STRING(SS_LCTL("a" SS_LSFT("e")));
+                } else {
+                    SEND_STRING(SS_TAP(X_HOME) SS_LSFT(SS_TAP(X_END)));
+                }
+            }
+            break;
+        case SEL_WD_MAC:
+            if (record->event.pressed) {
+                if (os == OS_MACOS || os == OS_IOS) {
+                    SEND_STRING(SS_LCMD(SS_TAP(X_RIGHT) SS_LSFT(SS_TAP(X_LEFT))));
+                } else {
+                    SEND_STRING(SS_LCTL(SS_TAP(X_RIGHT) SS_LSFT(SS_TAP(X_LEFT))));
+                }
+            }
+            break;
+        case SEL_ALL_MAC:
+            if (record->event.pressed) {
+                if (os == OS_MACOS || os == OS_IOS) {
+                    SEND_STRING(SS_LCMD("a"));
+                } else {
+                    SEND_STRING(SS_LCTL("a"));
+                }
+            }
+            break;
+
     }
     return true;
 }
@@ -612,3 +654,8 @@ bool oled_task_user(void) {
 
     return false;
 }
+
+// joystick_config_t joystick_axes[JOYSTICK_AXIS_COUNT] = {
+//     JOYSTICK_AXIS_IN(GP26, 127, 0, -127),
+//
+// };
