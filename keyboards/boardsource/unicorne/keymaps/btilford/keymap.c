@@ -96,8 +96,8 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     // Media
     [MEDIA] = LAYOUT_split_3x6_3(_______, KC_NO, KC_NO, KC_NO, KC_EXEC, KC_VOLU, KC_BRIU, KC_NO, KC_NO, KC_NO, KC_MPRV, _______, _______, KC_NO, KC_MSTP, KC_NO, KC_MPLY, KC_VOLD, KC_BRID, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, _______, KC_NO, KC_CALC, KC_NO, KC_NO, KC_MUTE, KC_MNXT, KC_MSEL, KC_NO, KC_NO, KC_NO, _______, _______, _______, _______, _______, _______, _______),
     // Text
-    [TEXT] = LAYOUT_split_3x6_3(_______, SEL_WD_MAC, _______, _______, _______, _______,                    _______, _______, _______, _______, _______, _______,
-                                _______, _______, _______, _______, _______, _______,                    _______, _______, _______, SEL_LN_MAC, _______, _______,
+    [TEXT] = LAYOUT_split_3x6_3(_______, _______, SEL_WD_MAC, _______, _______, _______,                    _______, _______, _______, _______, _______, _______,
+                                _______, SEL_ALL_MAC, _______, _______, _______, _______,                    _______, _______, _______, SEL_LN_MAC, _______, _______,
                                 _______, UNDO_MAC, CUT_MAC, COPY_MAC, PASTE_MAC, _______,                 _______, KC_APP, _______, _______, _______, _______,
                                                                 _______, _______, _______,              _______, _______, _______),
     // Numpad
@@ -123,7 +123,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         case COPY_MAC:
             if (record->event.pressed) {
                 if (os == OS_MACOS || os == OS_IOS) {
-                    SEND_STRING(SS_LCMD(SS_TAP(X_C)));
+                    SEND_STRING(SS_LALT(SS_TAP(X_C)));
                 } else {
                     SEND_STRING(SS_LCTL("c"));
                 }
@@ -132,7 +132,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         case PASTE_MAC:
             if (record->event.pressed) {
                 if (os == OS_MACOS || os == OS_IOS) {
-                    SEND_STRING(SS_LCMD(SS_TAP(X_V)));
+                    SEND_STRING(SS_LALT(SS_TAP(X_V)));
                 } else {
                     SEND_STRING(SS_LCTL("v"));
                 }
@@ -141,7 +141,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         case CUT_MAC:
             if (record->event.pressed) {
                 if (os == OS_MACOS || os == OS_IOS) {
-                    SEND_STRING(SS_LCMD(SS_TAP(X_X)));
+                    SEND_STRING(SS_LALT(SS_TAP(X_X)));
                 } else {
                     SEND_STRING(SS_LCTL("x"));
                 }
@@ -150,7 +150,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         case UNDO_MAC:
             if (record->event.pressed) {
                 if (os == OS_MACOS || os == OS_IOS) {
-                    SEND_STRING(SS_LCMD(SS_TAP(X_Z)));
+                    SEND_STRING(SS_LALT(SS_TAP(X_Z)));
                 } else {
                     SEND_STRING(SS_LCTL("z"));
                 }
@@ -173,7 +173,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         case SEL_WD_MAC:
             if (record->event.pressed) {
                 if (os == OS_MACOS || os == OS_IOS) {
-                    SEND_STRING(SS_LCMD(SS_TAP(X_RIGHT) SS_LSFT(SS_TAP(X_LEFT))));
+                    SEND_STRING(SS_LALT(SS_TAP(X_RIGHT) SS_LSFT(SS_TAP(X_LEFT))));
                 } else {
                     SEND_STRING(SS_LCTL(SS_TAP(X_RIGHT) SS_LSFT(SS_TAP(X_LEFT))));
                 }
@@ -182,7 +182,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         case SEL_ALL_MAC:
             if (record->event.pressed) {
                 if (os == OS_MACOS || os == OS_IOS) {
-                    SEND_STRING(SS_LCMD("a"));
+                    SEND_STRING(SS_LALT("a"));
                 } else {
                     SEND_STRING(SS_LCTL("a"));
                 }
@@ -597,6 +597,12 @@ void master_oled_render(void) {
         oled_set_cursor(0, 5);
         oled_write_ln_P(PSTR("Lead"), false);
     }
+    char wpm[4];
+    oled_set_cursor(0, 11);
+    snprintf(wpm, sizeof(wpm), "%03d", get_current_wpm());
+    oled_write_ln_P(PSTR("WPM"), false);
+    oled_write_ln(wpm, false);
+
     oled_set_cursor(0, 14);
     switch (detected_host_os()) {
         case OS_MACOS:
