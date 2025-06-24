@@ -173,7 +173,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         case SEL_WD_MAC:
             if (record->event.pressed) {
                 if (os == OS_MACOS || os == OS_IOS) {
-                    SEND_STRING(SS_LALT(SS_TAP(X_RIGHT) SS_LSFT(SS_TAP(X_LEFT))));
+                    SEND_STRING(SS_LCMD(SS_TAP(X_RIGHT) SS_LSFT(SS_TAP(X_LEFT))));
                 } else {
                     SEND_STRING(SS_LCTL(SS_TAP(X_RIGHT) SS_LSFT(SS_TAP(X_LEFT))));
                 }
@@ -182,7 +182,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         case SEL_ALL_MAC:
             if (record->event.pressed) {
                 if (os == OS_MACOS || os == OS_IOS) {
-                    SEND_STRING(SS_LALT("a"));
+                    SEND_STRING(SS_LCMD("a"));
                 } else {
                     SEND_STRING(SS_LCTL("a"));
                 }
