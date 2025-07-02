@@ -29,6 +29,7 @@ void       td_m_menu_reset(tap_dance_state_t *state, void *user_data);
 void       on_layer_change(void);
 
 uint8_t leaderCount = 0;
+uint8_t topWpm      = 0;
 
 enum unicode_names { DEG, LEFT, RIGHT, UP, DOWN, PLAY, STOP };
 
@@ -47,6 +48,7 @@ enum layers {
     NUM_PAD,
     FUNC,
     UNICDE,
+    WIN_MGR,
     KB_SETTINGS,
 };
 
@@ -74,6 +76,8 @@ enum macro_codes {
     SEL_LN_MAC,
     SEL_WD_MAC,
     SEL_ALL_MAC,
+    FIND_MAC,
+    FULLSCR_MAC,
     DEGR_MAC,
 };
 
@@ -85,26 +89,33 @@ enum macro_codes {
 
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     // Base Alphabet
-    [BASE] = LAYOUT_split_3x6_3(KC_TAB, KC_Q, KC_W, KC_E, KC_R, KC_T, KC_Y, KC_U, KC_I, KC_O, KC_P, LT(KB_SETTINGS, KC_BSPC), QK_GESC, LGUI_T(KC_A), LCTL_T(KC_S), LALT_T(KC_D), LT(MOTION, KC_F), LSFT_T(KC_G), RSFT_T(KC_H), LT(TEXT, KC_J), RALT_T(KC_K), RCTL_T(KC_L), RGUI_T(KC_SCLN), KC_QUOT, SC_LSPO, KC_Z, KC_X, KC_C, KC_V, KC_B, LT(NUM_PAD, KC_N), LT(MEDIA, KC_M), KC_COMM, KC_DOT, KC_SLSH, SC_RSPC, KC_LGUI, TD(TD_RET_BASE), LT(MOUSE, KC_SPC), LT(SYMB, KC_ENT), MO(TEXT), KC_RALT),
+    [BASE] = LAYOUT_split_3x6_3(KC_TAB, KC_Q, KC_W, KC_E, KC_R, KC_T, KC_Y, KC_U, KC_I, KC_O, KC_P, LT(KB_SETTINGS, KC_BSPC), QK_GESC, LGUI_T(KC_A), LCTL_T(KC_S), LALT_T(KC_D), LT(MOTION, KC_F), LSFT_T(KC_G), RSFT_T(KC_H), LT(TEXT, KC_J), RALT_T(KC_K), RCTL_T(KC_L), RGUI_T(KC_SCLN), KC_QUOT, SC_LSPO, KC_Z, KC_X, KC_C, KC_V, KC_B, LT(NUM_PAD, KC_N), LT(MEDIA, KC_M), KC_COMM, KC_DOT, KC_SLSH, SC_RSPC, MO(WIN_MGR), TD(TD_RET_BASE), LT(MOUSE, KC_SPC), LT(SYMB, KC_ENT), MO(TEXT), KC_RALT),
     // Numrow and Symbols A
-    [SYMB] = LAYOUT_split_3x6_3(_______, KC_1, KC_2, KC_3, KC_4, KC_5, KC_6, KC_7, KC_8, KC_9, KC_0, _______, _______, KC_EXLM, KC_AT, KC_HASH, KC_DLR, KC_PERC, KC_CIRC, KC_AMPR, KC_ASTR, KC_LPRN, KC_RPRN, KC_BSLS, _______, _______, _______, KC_LSFT, KC_MINS, TD(TD_CUR_OP), TD(TD_CUR_CL), KC_EQL, KC_RSFT, _______, _______, _______, _______, _______, _______, _______, _______, _______),
+    [SYMB] = LAYOUT_split_3x6_3(
+        _______, KC_1, KC_2, KC_3, KC_4, KC_5,                              KC_6, KC_7, KC_8, KC_9, KC_0, _______,
+        _______, KC_EXLM, KC_AT, KC_HASH, KC_DLR, LSFT_T(KC_PERC),          RSFT_T(KC_CIRC), KC_AMPR, KC_ASTR, KC_LPRN, KC_RPRN, KC_BSLS,
+        _______, _______, _______, KC_GRV, KC_MINS, TD(TD_CUR_OP),        TD(TD_CUR_CL), KC_EQL, _______, _______, _______, _______,
+                                   _______, _______, _______,               _______, _______, _______
+    ),
 
     // Motion
-    [MOTION] = LAYOUT_split_3x6_3(_______, _______, _______, KC_MAIL, KC_AGIN, _______, KC_HOME, KC_PGDN, KC_PGUP, KC_INS, KC_PSCR, KC_DEL, KC_LSFT, _______, _______, _______, _______, _______, KC_LEFT, KC_DOWN, KC_UP, KC_RGHT, KC_END, RSFT(_______), _______, UNDO_MAC, CUT_MAC, COPY_MAC, KC_PSTE, _______, _______, KC_APP, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______),
+    [MOTION] = LAYOUT_split_3x6_3(
+        _______, _______, _______, _______, _______, _______,               KC_HOME, KC_PGDN, KC_PGUP, KC_INS, KC_PSCR, KC_DEL,
+        KC_LSFT, _______, _______, _______, _______, _______,               KC_LEFT, KC_DOWN, KC_UP, KC_RGHT, KC_END, RCTL(KC_END),
+        _______, UNDO_MAC, CUT_MAC, COPY_MAC, KC_PSTE, _______,             _______, KC_APP, _______, _______, _______, _______,
+                                    _______, _______, _______,              _______, _______, _______
+    ),
     // Mouse
     [MOUSE] = LAYOUT_split_3x6_3(MS_ACL0, MS_ACL1, MS_ACL2, MS_UP, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, MS_LEFT, MS_DOWN, MS_RGHT, _______, MS_WHLL, MS_WHLD, MS_WHLU, MS_WHLR, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, MS_BTN1, MS_BTN2, MS_BTN3),
     // Media
     [MEDIA] = LAYOUT_split_3x6_3(_______, KC_NO, KC_NO, KC_NO, KC_EXEC, KC_VOLU, KC_BRIU, KC_NO, KC_NO, KC_NO, KC_MPRV, _______, _______, KC_NO, KC_MSTP, KC_NO, KC_MPLY, KC_VOLD, KC_BRID, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, _______, KC_NO, KC_CALC, KC_NO, KC_NO, KC_MUTE, KC_MNXT, KC_MSEL, KC_NO, KC_NO, KC_NO, _______, _______, _______, _______, _______, _______, _______),
     // Text
-    [TEXT] = LAYOUT_split_3x6_3(_______, _______, SEL_WD_MAC, _______, _______, _______,                    _______, _______, _______, _______, _______, _______,
-                                _______, SEL_ALL_MAC, _______, _______, _______, _______,                    _______, _______, _______, SEL_LN_MAC, _______, _______,
-                                _______, UNDO_MAC, CUT_MAC, COPY_MAC, PASTE_MAC, _______,                 _______, KC_APP, _______, _______, _______, _______,
-                                                                _______, _______, _______,              _______, _______, _______),
+    [TEXT] = LAYOUT_split_3x6_3(_______, _______, SEL_WD_MAC, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, SEL_ALL_MAC, _______, _______, FIND_MAC, _______, _______, _______, _______, SEL_LN_MAC, _______, _______, _______, UNDO_MAC, CUT_MAC, COPY_MAC, PASTE_MAC, _______, _______, KC_APP, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______),
     // Numpad
     [NUM_PAD] = LAYOUT_split_3x6_3(KC_NO, KC_PSLS, KC_7, KC_8, KC_9, KC_PAST, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, _______, _______, KC_PMNS, KC_4, KC_5, KC_6, KC_PPLS, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_PEQL, _______, KC_NO, KC_1, KC_2, KC_3, KC_0, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______),
     [FUNC]    = LAYOUT_split_3x6_3(_______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, KC_F1, LGUI_T(KC_F2), LCTL_T(KC_F3), LALT_T(KC_F4), KC_F5, LSFT_T(KC_F6), RSFT_T(KC_F7), KC_F8, RALT_T(KC_F9), RCTL_T(KC_F10), RGUI_T(KC_F11), KC_F12, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______),
     [UNICDE]  = LAYOUT_split_3x6_3(_______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, UM(STOP), DEGR_MAC, UM(PLAY), _______, UC(0x2190), UM(DOWN), UM(UP), UM(RIGHT), _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______),
-    // Danger
+    [WIN_MGR] = LAYOUT_split_3x6_3(_______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, FULLSCR_MAC, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______), // Danger
     //
     [KB_SETTINGS] = LAYOUT_split_3x6_3(QK_BOOT, _______, _______, _______, QK_REBOOT, _______, RM_VALU, RM_HUEU, RM_SATU, RM_NEXT, RM_TOGG, _______, EE_CLR, _______, _______, _______, QK_MAKE, _______, RM_VALD, RM_HUED, RM_SATD, RM_PREV, CK_TOGG, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______)};
 
@@ -120,6 +131,19 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     }
 
     switch (keycode) {
+        case LSFT_T(KC_PERC):
+            if(record->tap.count && record->event.pressed) {
+                tap_code16(KC_PERC);
+                return false;
+                // SEND_STRING(SS_LSFT(SS_TAP(X_5)));
+            }
+            break;
+        case RSFT_T(KC_CIRC):
+            if(record->tap.count && record->event.pressed) {
+                tap_code16(KC_CIRC);
+                return false;
+            }
+            break;
         case COPY_MAC:
             if (record->event.pressed) {
                 if (os == OS_MACOS || os == OS_IOS) {
@@ -182,13 +206,30 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         case SEL_ALL_MAC:
             if (record->event.pressed) {
                 if (os == OS_MACOS || os == OS_IOS) {
-                    SEND_STRING(SS_LCMD("a"));
+                    SEND_STRING(SS_LALT("a"));
                 } else {
                     SEND_STRING(SS_LCTL("a"));
                 }
             }
             break;
-
+        case FIND_MAC:
+            if (record->event.pressed) {
+                if (os == OS_MACOS || os == OS_IOS) {
+                    SEND_STRING(SS_LCMD("f"));
+                } else {
+                    SEND_STRING(SS_LCTL("f"));
+                }
+            }
+            break;
+        case FULLSCR_MAC:
+            if (record->event.pressed) {
+                if (os == OS_MACOS || os == OS_IOS) {
+                    SEND_STRING(SS_LCTL(SS_LCMD("f")));
+                } else {
+                    SEND_STRING(SS_LGUI("f"));
+                }
+            }
+            break;
     }
     return true;
 }
@@ -345,6 +386,9 @@ bool rgb_matrix_indicators_user(void) {
             }
 
             break;
+        case WIN_MGR:
+            rgb_matrix_set_color_all(RGB_OFF);
+            rgb_matrix_set_color(g_led_config.matrix_co[1][4], RGB_GOLD);
         default:
             break;
     }
@@ -589,6 +633,9 @@ void master_oled_render(void) {
         case UNICDE:
             oled_write_ln_P(PSTR("Unicode"), false);
             break;
+        case WIN_MGR:
+            oled_write_ln_P(PSTR("Win Mgr"), false);
+            break;
         case KB_SETTINGS:
             oled_write_ln_P(PSTR("Settings"), false);
             break;
@@ -597,11 +644,18 @@ void master_oled_render(void) {
         oled_set_cursor(0, 5);
         oled_write_ln_P(PSTR("Lead"), false);
     }
+    uint8_t curWpm = get_current_wpm();
+    if (curWpm > topWpm) {
+        topWpm = curWpm;
+    }
     char wpm[4];
-    oled_set_cursor(0, 11);
-    snprintf(wpm, sizeof(wpm), "%03d", get_current_wpm());
+    char tWpm[4];
+    oled_set_cursor(0, 10);
+    snprintf(wpm, sizeof(wpm), "%03d", curWpm);
+    snprintf(tWpm, sizeof(tWpm), "%03d", topWpm);
     oled_write_ln_P(PSTR("WPM"), false);
     oled_write_ln(wpm, false);
+    oled_write_ln(tWpm, false);
 
     oled_set_cursor(0, 14);
     switch (detected_host_os()) {
