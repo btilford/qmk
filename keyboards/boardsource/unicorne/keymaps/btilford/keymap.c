@@ -1,3 +1,4 @@
+#include <stdint.h>
 #include <sys/types.h>
 #include QMK_KEYBOARD_H
 #include <stdio.h>
@@ -66,7 +67,7 @@ const key_override_t tilde_esc_override = ko_make_basic(MOD_MASK_SHIFT, KC_ESC, 
 const key_override_t grave_esc_override = ko_make_basic(MOD_MASK_GUI, KC_ESC, KC_GRV);
 const key_override_t backspace_delete   = ko_make_basic(MOD_MASK_SHIFT, KC_BSPC, KC_DEL);
 
-const key_override_t *key_overrides[] = {&tilde_esc_override, &grave_esc_override, &backspace_delete};
+const key_override_t *key_overrides[] = {&tilde_esc_override, &grave_esc_override, /*&backspace_delete*/};
 
 enum macro_codes {
     COPY_MAC = SAFE_RANGE,
@@ -89,12 +90,13 @@ enum macro_codes {
 
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     // Base Alphabet
-    [BASE] = LAYOUT_split_3x6_3(KC_TAB, KC_Q, KC_W, KC_E, KC_R, KC_T, KC_Y, KC_U, KC_I, KC_O, KC_P, LT(KB_SETTINGS, KC_BSPC), QK_GESC, LGUI_T(KC_A), LCTL_T(KC_S), LALT_T(KC_D), LT(MOTION, KC_F), LSFT_T(KC_G), RSFT_T(KC_H), LT(TEXT, KC_J), RALT_T(KC_K), RCTL_T(KC_L), RGUI_T(KC_SCLN), KC_QUOT, SC_LSPO, KC_Z, KC_X, KC_C, KC_V, KC_B, LT(NUM_PAD, KC_N), LT(MEDIA, KC_M), KC_COMM, KC_DOT, KC_SLSH, SC_RSPC, MO(WIN_MGR), TD(TD_RET_BASE), LT(MOUSE, KC_SPC), LT(SYMB, KC_ENT), MO(TEXT), KC_RALT),
+    [BASE] = LAYOUT_split_3x6_3(
+        KC_TAB, KC_Q, KC_W, KC_E, KC_R, KC_T, KC_Y, KC_U, KC_I, KC_O, KC_P, LT(KB_SETTINGS, KC_BSPC), QK_GESC, LGUI_T(KC_A), LCTL_T(KC_S), LALT_T(KC_D), LSFT_T(KC_F), LT(MOTION, KC_G), LT(TEXT, KC_H), RSFT_T(KC_J), RALT_T(KC_K), RCTL_T(KC_L), RGUI_T(KC_SCLN), KC_QUOT, SC_LSPO, KC_Z, KC_X, KC_C, KC_V, KC_B, LT(NUM_PAD, KC_N), LT(MEDIA, KC_M), KC_COMM, KC_DOT, KC_SLSH, SC_RSPC, MO(WIN_MGR), TD(TD_RET_BASE), LT(MOUSE, KC_SPC), LT(SYMB, KC_ENT), MO(TEXT), KC_RALT),
     // Numrow and Symbols A
     [SYMB] = LAYOUT_split_3x6_3(
-        _______, KC_1, KC_2, KC_3, KC_4, KC_5,                              KC_6, KC_7, KC_8, KC_9, KC_0, _______,
-        _______, KC_EXLM, KC_AT, KC_HASH, KC_DLR, LSFT_T(KC_PERC),          RSFT_T(KC_CIRC), KC_AMPR, KC_ASTR, KC_LPRN, KC_RPRN, KC_BSLS,
-        _______, _______, _______, KC_GRV, KC_MINS, TD(TD_CUR_OP),        TD(TD_CUR_CL), KC_EQL, _______, _______, _______, _______,
+        _______, KC_1, KC_2, KC_3, KC_4, KC_5,                                                           KC_6, KC_7, KC_8, KC_9, KC_0, _______,
+        _______, LGUI_T(KC_EXLM), LCTL_T(KC_AT), LALT_T(KC_HASH), LSFT_T(KC_DLR), KC_PERC,              KC_CIRC, RSFT_T(KC_AMPR), RALT_T(KC_ASTR), RCTL_T(KC_LPRN), RGUI_T(KC_RPRN), KC_BSLS,
+        _______, _______,         _______,        KC_GRV,          KC_MINS,        TD(TD_CUR_OP),        TD(TD_CUR_CL), KC_EQL, _______, _______, _______, _______,
                                    _______, _______, _______,               _______, _______, _______
     ),
 
@@ -123,6 +125,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 #    include OTHER_KEYMAP_C
 #endif // OTHER_KEYMAP_C
 
+uint8_t mod_state;
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     os_variant_t os = detected_host_os();
 
@@ -130,21 +133,78 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         rgb_matrix_set_color(g_led_config.matrix_co[record->event.key.row][record->event.key.col], RGB_PURPLE);
     }
 
+    mod_state = get_mods();
     switch (keycode) {
-        case LSFT_T(KC_PERC):
+        // probabaly doesn't wot because of the LT layer change for backspace
+        // case KC_BSPC: {
+        //     static bool delkey_registered;
+        //     if(record->event.pressed) {
+        //         if(mod_state & MOD_MASK_SHIFT) {
+        //             del_mods(MOD_MASK_SHIFT);
+        //             register_code(KC_DEL);
+        //             delkey_registered = true;
+        //             set_mods(mod_state);
+        //             return false; // Prevent default behavior
+        //         } else {
+        //             if(delkey_registered) {
+        //                 unregister_code(KC_DEL);
+        //                 delkey_registered = false;
+        //                 return false; // Prevent default behavior
+        //             }
+        //         }
+        //     }
+        //     return true; // fallback to default behavior
+        // }
+        case LSFT_T(KC_DLR):
             if(record->tap.count && record->event.pressed) {
-                tap_code16(KC_PERC);
+                tap_code16(KC_DLR);
                 return false;
-                // SEND_STRING(SS_LSFT(SS_TAP(X_5)));
             }
             break;
-        case RSFT_T(KC_CIRC):
+        case LALT_T(KC_HASH):
             if(record->tap.count && record->event.pressed) {
-                tap_code16(KC_CIRC);
+                tap_code16(KC_HASH);
                 return false;
             }
             break;
-        case COPY_MAC:
+        case LCTL_T(KC_AT):
+            if(record->tap.count && record->event.pressed) {
+                tap_code16(KC_AT);
+                return false;
+            }
+            break;
+        case LGUI_T(KC_EXLM):
+            if(record->tap.count && record->event.pressed) {
+                tap_code16(KC_EXLM);
+                return false;
+            }
+            break;
+
+        case RSFT_T(KC_AMPR):
+            if(record->tap.count && record->event.pressed) {
+                tap_code16(KC_AMPR);
+                return false;
+            }
+            break;
+        case RALT_T(KC_ASTR):
+            if(record->tap.count && record->event.pressed) {
+                tap_code16(KC_ASTR);
+                return false;
+            }
+            break;
+        case RCTL_T(KC_LPRN):
+            if(record->tap.count && record->event.pressed) {
+                tap_code16(KC_LPRN);
+                return false;
+            }
+            break;
+        case RGUI_T(KC_RPRN):
+            if(record->tap.count && record->event.pressed) {
+                tap_code16(KC_RPRN);
+                return false;
+            }
+            break;
+                case COPY_MAC:
             if (record->event.pressed) {
                 if (os == OS_MACOS || os == OS_IOS) {
                     SEND_STRING(SS_LALT(SS_TAP(X_C)));
