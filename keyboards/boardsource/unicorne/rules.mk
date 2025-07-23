@@ -12,7 +12,8 @@ SPACE_CADET_ENABLE   = yes
 UNICODEMAP_ENABLE = yes
 KEY_OVERRIDE_ENABLE = yes
 CAPS_WORD_ENABLE = yes
-
+# only when flasing right side...
+# RGB_MATRIX_SPLIT_RIGHT = yes
 
 SRC += lib/oled.c
 

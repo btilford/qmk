@@ -39,6 +39,14 @@ const uint32_t PROGMEM unicode_map[] = {
     [DEG] = 0x00B0, [STOP] = 0x23F9, [PLAY] = 0x25B6, [LEFT] = 0x2190, [RIGHT] = 0x2192, [UP] = 0x2191, [DOWN] = 0x2193,
 };
 
+const uint16_t PROGMEM led_map[] = {
+    [KC_TAB]=24, [KC_Q]=23, [KC_W]=18, [KC_E]=17, [KC_R]=4, [KC_T]=3,  /* Row 0 */ [KC_Y]=36, [KC_U]=37, [KC_I]=44, [KC_O]=45, [KC_P]=50, [KC_BSPC]=51,
+    [KC_ESC]=25, [KC_A]=22, [KC_S]=19, [KC_D]=16, [KC_F]=11, [KC_G]=8,  /* Row 1 */ [KC_H]=35, [KC_K]=38, [KC_K]=43, [KC_L]=46, [KC_SCLN]=49, [KC_QUOT]=52,
+    [KC_LSFT]=24, [KC_Z]=23, [KC_X]=18, [KC_C]=17, [KC_V]=4, [KC_B]=3,  /* Row 2 */ [KC_N]=34, [KC_M]=39, [KC_DOT]=42, [KC_COMM]=47, [KC_SLSH]=48, [KC_RSFT]=53,
+
+                                        [KC_LGUI]=14, [KC_LALT]=13, [KC_SPC]=6,  /* Row 3 */ [KC_ENT]=33, [KC_RALT]=40, [KC_RGUI]=41
+};
+
 enum layers {
     BASE = 0,
     SYMB,
@@ -340,26 +348,28 @@ bool rgb_matrix_indicators_user(void) {
             rgb_matrix_set_color(g_led_config.matrix_co[2][4], RGB_BLUE);
             rgb_matrix_set_color(g_led_config.matrix_co[2][5], RGB_BLUE);
 
-            // rgb_matrix_set_color(g_led_config.matrix_co[0][5], RGB_GREEN);
-            // rgb_matrix_set_color(g_led_config.matrix_co[1][5], RGB_GREEN);
-            // rgb_matrix_set_color(g_led_config.matrix_co[0][1], RGB_RED);
-            // rgb_matrix_set_color(g_led_config.matrix_co[0][1], RGB_RED);
+            rgb_matrix_set_color(g_led_config.matrix_co[0][5], RGB_GREEN);
+            rgb_matrix_set_color(g_led_config.matrix_co[1][5], RGB_GREEN);
+            rgb_matrix_set_color(g_led_config.matrix_co[0][1], RGB_RED);
+            rgb_matrix_set_color(g_led_config.matrix_co[0][1], RGB_RED);
 
             rgb_matrix_set_color(g_led_config.matrix_co[3][2], RGB_YELLOW);
             break;
         case TEXT:
             // Text
             rgb_matrix_set_color_all(RGB_OFF);
-            rgb_matrix_set_color(g_led_config.matrix_co[0][4], RGB_CHARTREUSE);
+            // rgb_matrix_set_color(g_led_config.matrix_co[0][4], RGB_CHARTREUSE);
             rgb_matrix_set_color(g_led_config.matrix_co[1][0], RGB_RED);
-            rgb_matrix_set_color(g_led_config.matrix_co[1][2], RGB_YELLOW);
-            rgb_matrix_set_color(g_led_config.matrix_co[1][4], RGB_ORANGE);
-            rgb_matrix_set_color(g_led_config.matrix_co[2][1], RGB_RED);
+            // rgb_matrix_set_color(g_led_config.matrix_co[1][2], RGB_YELLOW);
+            // rgb_matrix_set_color(g_led_config.matrix_co[1][4], RGB_ORANGE);
+            rgb_matrix_set_color(g_led_config.matrix_co[2][1], RGB_YELLOW);
             rgb_matrix_set_color(g_led_config.matrix_co[2][2], RGB_YELLOW);
             rgb_matrix_set_color(g_led_config.matrix_co[2][3], RGB_YELLOW);
-            rgb_matrix_set_color(g_led_config.matrix_co[2][4], RGB_GREEN);
+            rgb_matrix_set_color(g_led_config.matrix_co[2][4], RGB_YELLOW);
 
-            rgb_matrix_set_color(g_led_config.matrix_co[6][4], RGB_ORANGE);
+            rgb_matrix_set_color(g_led_config.matrix_co[0][2], RGB_BLUE);
+            rgb_matrix_set_color(g_led_config.matrix_co[4][2], RGB_BLUE);
+            // rgb_matrix_set_color(g_led_config.matrix_co[6][4], RGB_ORANGE);
             break;
         case MEDIA:
             // Media
@@ -372,9 +382,9 @@ bool rgb_matrix_indicators_user(void) {
             rgb_matrix_set_color(g_led_config.matrix_co[6][5], RGB_YELLOW);
 
             // Volume
-            // rgb_matrix_set_color(g_led_config.matrix_co[0][5], RGB_GREEN);
-            // rgb_matrix_set_color(g_led_config.matrix_co[1][5], RGB_TURQUOISE);
-            // rgb_matrix_set_color(g_led_config.matrix_co[2][5], RGB_RED);
+            rgb_matrix_set_color(g_led_config.matrix_co[0][5], RGB_GREEN);
+            rgb_matrix_set_color(g_led_config.matrix_co[1][5], RGB_TURQUOISE);
+            rgb_matrix_set_color(g_led_config.matrix_co[2][5], RGB_RED);
 
             // Exec
             // rgb_matrix_set_color(g_led_config.matrix_co[0][4], RGB_ORANGE);
@@ -393,23 +403,42 @@ bool rgb_matrix_indicators_user(void) {
             // rgb_matrix_set_color(g_led_config.matrix_co[0][0], RGB_GREEN);
             // rgb_matrix_set_color(g_led_config.matrix_co[0][1], RGB_GREEN);
             // rgb_matrix_set_color(g_led_config.matrix_co[0][2], RGB_GREEN);
+            rgb_matrix_set_color(led_map[KC_TAB], RGB_GREEN);
+            rgb_matrix_set_color(led_map[KC_Q], RGB_GREEN);
+            rgb_matrix_set_color(led_map[KC_W], RGB_GREEN);
+
 
             // Mouse Movement
-            rgb_matrix_set_color(g_led_config.matrix_co[0][3], RGB_PURPLE);
-            rgb_matrix_set_color(g_led_config.matrix_co[1][2], RGB_PURPLE);
-            rgb_matrix_set_color(g_led_config.matrix_co[1][3], RGB_PURPLE);
-            rgb_matrix_set_color(g_led_config.matrix_co[1][4], RGB_PURPLE);
+            // rgb_matrix_set_color(g_led_config.matrix_co[0][3], RGB_PURPLE);
+            // rgb_matrix_set_color(g_led_config.matrix_co[1][2], RGB_PURPLE);
+            // rgb_matrix_set_color(g_led_config.matrix_co[1][3], RGB_PURPLE);
+            // rgb_matrix_set_color(g_led_config.matrix_co[1][4], RGB_PURPLE);
+            rgb_matrix_set_color(led_map[KC_S], RGB_PURPLE);
+            rgb_matrix_set_color(led_map[KC_E], RGB_PURPLE);
+            rgb_matrix_set_color(led_map[KC_D], RGB_PURPLE);
+            rgb_matrix_set_color(led_map[KC_F], RGB_PURPLE);
 
             // Mouse Buttons 1-3
+
             // rgb_matrix_set_color(g_led_config.matrix_co[7][0], RGB_PURPLE);
             // rgb_matrix_set_color(g_led_config.matrix_co[7][1], RGB_PURPLE);
             // rgb_matrix_set_color(g_led_config.matrix_co[7][2], RGB_PURPLE);
+            rgb_matrix_set_color(led_map[KC_ENT], RGB_PURPLE);
+            rgb_matrix_set_color(led_map[KC_RALT], RGB_PURPLE);
+            rgb_matrix_set_color(led_map[KC_RGUI], RGB_PURPLE);
+
 
             // Mouse Scroll
             // rgb_matrix_set_color(g_led_config.matrix_co[5][5], RGB_PURPLE);
             // rgb_matrix_set_color(g_led_config.matrix_co[5][4], RGB_PURPLE);
             // rgb_matrix_set_color(g_led_config.matrix_co[5][3], RGB_PURPLE);
             // rgb_matrix_set_color(g_led_config.matrix_co[5][2], RGB_PURPLE);
+
+            rgb_matrix_set_color(led_map[KC_H], RGB_PURPLE);
+            rgb_matrix_set_color(led_map[KC_J], RGB_PURPLE);
+            rgb_matrix_set_color(led_map[KC_K], RGB_PURPLE);
+            rgb_matrix_set_color(led_map[KC_L], RGB_PURPLE);
+
             break;
         case MOTION:
             // Motions
@@ -440,7 +469,7 @@ bool rgb_matrix_indicators_user(void) {
             }
             rgb_matrix_set_color(g_led_config.matrix_co[5][0], RGB_GOLD);
 
-            for (uint8_t col = 4; col < MATRIX_COLS; ++col) {
+            for (uint8_t col = 3; col < MATRIX_COLS; ++col) {
                 rgb_matrix_set_color(g_led_config.matrix_co[2][col], RGB_GOLD);
                 rgb_matrix_set_color(g_led_config.matrix_co[6][col], RGB_GOLD);
             }
@@ -779,3 +808,5 @@ bool oled_task_user(void) {
 //     JOYSTICK_AXIS_IN(GP26, 127, 0, -127),
 //
 // };
+//
+

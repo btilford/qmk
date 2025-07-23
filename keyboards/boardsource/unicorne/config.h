@@ -69,6 +69,8 @@
 #define ENABLE_RGB_MATRIX_MULTISPLASH         // Full gradient & value pulse away from multiple key hits then fades value out
 #define ENABLE_RGB_MATRIX_RIVERFLOW
 #define ENABLE_RGB_MATRIX_EFFECT_MAX
+#define SPLIT_MODS_ENABLE
+// #define SPLIT_LAYER_STATE_ENABLE
 
 // #define MOUSEKEY_MAX_SPEED 12
 // #define MOUSEKEY_MOVE_DELTA 10
