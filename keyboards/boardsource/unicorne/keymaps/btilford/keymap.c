@@ -99,12 +99,15 @@ enum macro_codes {
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     // Base Alphabet
     [BASE] = LAYOUT_split_3x6_3(
-        KC_TAB, KC_Q, KC_W, KC_E, KC_R, KC_T, KC_Y, KC_U, KC_I, KC_O, KC_P, LT(KB_SETTINGS, KC_BSPC), QK_GESC, LGUI_T(KC_A), LCTL_T(KC_S), LALT_T(KC_D), LSFT_T(KC_F), LT(MOTION, KC_G), LT(TEXT, KC_H), RSFT_T(KC_J), RALT_T(KC_K), RCTL_T(KC_L), RGUI_T(KC_SCLN), KC_QUOT, SC_LSPO, KC_Z, KC_X, KC_C, KC_V, KC_B, LT(NUM_PAD, KC_N), LT(MEDIA, KC_M), KC_COMM, KC_DOT, KC_SLSH, SC_RSPC, MO(WIN_MGR), TD(TD_RET_BASE), LT(MOUSE, KC_SPC), LT(SYMB, KC_ENT), MO(TEXT), KC_RALT),
+        KC_TAB, KC_Q, KC_W, KC_E, KC_R, KC_T,                                               /* | */     KC_Y, KC_U, KC_I, KC_O, KC_P, LT(KB_SETTINGS, KC_BSPC),
+        QK_GESC, LGUI_T(KC_A), LCTL_T(KC_S), LSFT_T(KC_D), LT(MOTION, KC_F), LALT_T(KC_G),  /* | */     RALT_T(KC_H), LT(TEXT, KC_J), RSFT_T(KC_K), RCTL_T(KC_L), RGUI_T(KC_SCLN), KC_QUOT,
+        SC_LSPO, KC_Z, KC_X, KC_C, KC_V, KC_B,                                              /* | */     LT(NUM_PAD, KC_N), LT(MEDIA, KC_M), KC_COMM, KC_DOT, KC_SLSH, SC_RSPC,
+                                        MO(WIN_MGR), TD(TD_RET_BASE), LT(MOUSE, KC_SPC),    /* | */    LT(SYMB, KC_ENT), MO(TEXT), KC_RALT),
     // Numrow and Symbols A
     [SYMB] = LAYOUT_split_3x6_3(
         _______, KC_1, KC_2, KC_3, KC_4, KC_5,                                                           KC_6, KC_7, KC_8, KC_9, KC_0, _______,
-        _______, LGUI_T(KC_EXLM), LCTL_T(KC_AT), LALT_T(KC_HASH), LSFT_T(KC_DLR), KC_PERC,              KC_CIRC, RSFT_T(KC_AMPR), RALT_T(KC_ASTR), RCTL_T(KC_LPRN), RGUI_T(KC_RPRN), KC_BSLS,
-        _______, _______,         _______,        KC_GRV,          KC_MINS,        TD(TD_CUR_OP),        TD(TD_CUR_CL), KC_EQL, _______, _______, _______, _______,
+        _______, LGUI_T(KC_EXLM), LCTL_T(KC_AT), LSFT_T(KC_HASH), KC_DLR, LALT_T(KC_PERC),              RALT_T(KC_CIRC), KC_AMPR, RSFT_T(KC_ASTR), RCTL_T(KC_LPRN), RGUI_T(KC_RPRN), KC_BSLS,
+        _______, _______,         KC_LBRC,        KC_GRV,          KC_MINS,        KC_LCBR,        KC_RCBR, KC_EQL, _______, KC_RBRC, _______, _______,
                                    _______, _______, _______,               _______, _______, _______
     ),
 
@@ -163,15 +166,15 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         //     }
         //     return true; // fallback to default behavior
         // }
-        case LSFT_T(KC_DLR):
+        case LSFT_T(KC_HASH):
             if(record->tap.count && record->event.pressed) {
-                tap_code16(KC_DLR);
+                tap_code16(KC_HASH);
                 return false;
             }
             break;
-        case LALT_T(KC_HASH):
+        case LALT_T(KC_PERC):
             if(record->tap.count && record->event.pressed) {
-                tap_code16(KC_HASH);
+                tap_code16(KC_PERC);
                 return false;
             }
             break;
@@ -188,15 +191,15 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
             }
             break;
 
-        case RSFT_T(KC_AMPR):
+        case RSFT_T(KC_ASTR):
             if(record->tap.count && record->event.pressed) {
-                tap_code16(KC_AMPR);
+                tap_code16(KC_ASTR);
                 return false;
             }
             break;
-        case RALT_T(KC_ASTR):
+        case RALT_T(KC_CIRC):
             if(record->tap.count && record->event.pressed) {
-                tap_code16(KC_ASTR);
+                tap_code16(KC_CIRC);
                 return false;
             }
             break;
