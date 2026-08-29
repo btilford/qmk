@@ -1,19 +1,7 @@
+# Board-level only. Everything a keymap chooses for itself — leader, tap dance,
+# caps word, key overrides, unicode map, space cadet, WPM, OS detection — moved
+# to users/btilford/rules.mk in the qmk-config userspace repo, so this board can
+# still be built with the stock keymap.
 POINTING_DEVICE_DRIVER = analog_joystick
-# RGBLIGHT_ENABLE = yes
-# WS2812_DRIVER_REQUIRED = yes
-#
-# QK_RGB_MATRIX_ON = yes
-OS_DETECTION_ENABLE = yes
-LEADER_ENABLE = yes
-WPM_ENABLE = yes
-COMMAND_ENABLE = no
-TAP_DANCE_ENABLE = yes
-SPACE_CADET_ENABLE   = yes
-UNICODEMAP_ENABLE = yes
-KEY_OVERRIDE_ENABLE = yes
-CAPS_WORD_ENABLE = yes
-# only when flasing right side...
-# RGB_MATRIX_SPLIT_RIGHT = yes
 
 SRC += lib/oled.c
-

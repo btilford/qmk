@@ -1,3 +1,0 @@
-
-TAPDANCE_ENABLED = yes
-VIA_ENABLED = yes
