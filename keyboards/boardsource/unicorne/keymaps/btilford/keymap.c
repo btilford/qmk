@@ -47,6 +47,8 @@ const uint16_t PROGMEM led_map[] = {
                                         [KC_LGUI]=14, [KC_LALT]=13, [KC_SPC]=6,  /* Row 3 */ [KC_ENT]=33, [KC_RALT]=40, [KC_RGUI]=41
 };
 
+#include "rows.h"
+
 enum layers {
     BASE = 0,
     SYMB,
@@ -57,7 +59,6 @@ enum layers {
     NUM_PAD,
     FUNC,
     UNICDE,
-    WIN_MGR,
     KB_SETTINGS,
 };
 
@@ -99,16 +100,16 @@ enum macro_codes {
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     // Base Alphabet
     [BASE] = LAYOUT_split_3x6_3(
-        KC_TAB, KC_Q, KC_W, KC_E, KC_R, KC_T,                                               /* | */     KC_Y, KC_U, KC_I, KC_O, KC_P, LT(KB_SETTINGS, KC_BSPC),
-        QK_GESC, LGUI_T(KC_A), LCTL_T(KC_S), LSFT_T(KC_D), LT(MOTION, KC_F), LALT_T(KC_G),  /* | */     RALT_T(KC_H), LT(TEXT, KC_J), RSFT_T(KC_K), RCTL_T(KC_L), RGUI_T(KC_SCLN), KC_QUOT,
-        SC_LSPO, KC_Z, KC_X, KC_C, KC_V, KC_B,                                              /* | */     LT(NUM_PAD, KC_N), LT(MEDIA, KC_M), KC_COMM, KC_DOT, KC_SLSH, SC_RSPC,
-                                        MO(WIN_MGR), TD(TD_RET_BASE), LT(MOUSE, KC_SPC),    /* | */    LT(SYMB, KC_ENT), MO(TEXT), KC_RALT),
+        ___BASE_L1___,      /* | */  ___BASE_R1___,
+        ___BASE_L2___,      /* | */  ___BASE_R2___,
+        ___BASE_L3___,      /* | */  ___BASE_R3___,
+        ___BASE_THUMB_L___, /* | */  ___BASE_THUMB_R___),
     // Numrow and Symbols A
     [SYMB] = LAYOUT_split_3x6_3(
-        _______, KC_1, KC_2, KC_3, KC_4, KC_5,                                                           KC_6, KC_7, KC_8, KC_9, KC_0, _______,
-        _______, LGUI_T(KC_EXLM), LCTL_T(KC_AT), LSFT_T(KC_HASH), KC_DLR, LALT_T(KC_PERC),              RALT_T(KC_CIRC), KC_AMPR, RSFT_T(KC_ASTR), RCTL_T(KC_LPRN), RGUI_T(KC_RPRN), KC_BSLS,
-        _______, _______,         KC_LBRC,        KC_GRV,          KC_MINS,        KC_LCBR,        KC_RCBR, KC_EQL, _______, KC_RBRC, _______, _______,
-                                   _______, _______, _______,               _______, _______, _______
+        ___SYMB_L1___, /* | */ ___SYMB_R1___,
+        ___SYMB_L2___, /* | */ ___SYMB_R2___,
+        ___SYMB_L3___, /* | */ ___SYMB_R3___,
+        _______, _______, _______, /* | */ _______, _______, _______
     ),
 
     // Motion
@@ -128,7 +129,6 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     [NUM_PAD] = LAYOUT_split_3x6_3(KC_NO, KC_PSLS, KC_7, KC_8, KC_9, KC_PAST, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, _______, _______, KC_PMNS, KC_4, KC_5, KC_6, KC_PPLS, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_PEQL, _______, KC_NO, KC_1, KC_2, KC_3, KC_0, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______),
     [FUNC]    = LAYOUT_split_3x6_3(_______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, KC_F1, LGUI_T(KC_F2), LCTL_T(KC_F3), LALT_T(KC_F4), KC_F5, LSFT_T(KC_F6), RSFT_T(KC_F7), KC_F8, RALT_T(KC_F9), RCTL_T(KC_F10), RGUI_T(KC_F11), KC_F12, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______),
     [UNICDE]  = LAYOUT_split_3x6_3(_______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, UM(STOP), DEGR_MAC, UM(PLAY), _______, UC(0x2190), UM(DOWN), UM(UP), UM(RIGHT), _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______),
-    [WIN_MGR] = LAYOUT_split_3x6_3(_______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, FULLSCR_MAC, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______), // Danger
     //
     [KB_SETTINGS] = LAYOUT_split_3x6_3(QK_BOOT, _______, _______, _______, QK_REBOOT, _______, RM_VALU, RM_HUEU, RM_SATU, RM_NEXT, RM_TOGG, _______, EE_CLR, _______, _______, _______, QK_MAKE, _______, RM_VALD, RM_HUED, RM_SATD, RM_PREV, CK_TOGG, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______)};
 
@@ -286,7 +286,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         case FIND_MAC:
             if (record->event.pressed) {
                 if (os == OS_MACOS || os == OS_IOS) {
-                    SEND_STRING(SS_LCMD("f"));
+                    SEND_STRING(SS_LALT("f"));  // Cmd: Option<->Command is swapped
                 } else {
                     SEND_STRING(SS_LCTL("f"));
                 }
@@ -295,7 +295,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         case FULLSCR_MAC:
             if (record->event.pressed) {
                 if (os == OS_MACOS || os == OS_IOS) {
-                    SEND_STRING(SS_LCTL(SS_LCMD("f")));
+                    SEND_STRING(SS_LCTL(SS_LALT("f")));  // Ctrl+Cmd
                 } else {
                     SEND_STRING(SS_LGUI("f"));
                 }
@@ -478,9 +478,6 @@ bool rgb_matrix_indicators_user(void) {
             }
 
             break;
-        case WIN_MGR:
-            rgb_matrix_set_color_all(RGB_OFF);
-            rgb_matrix_set_color(g_led_config.matrix_co[1][4], RGB_GOLD);
         default:
             break;
     }
@@ -538,8 +535,54 @@ void leader_end_user(void) {
     //     layer_on(MOUSE);
     // }
 
-    // TODO match up with window management shortcuts and make MacOS aware
-    // where possible.
+    // macOS tree, mirroring config/macos.dtsi in the zmk-config repo. Keep the
+    // two in step. Cmd is sent as LALT because Option<->Command is swapped in
+    // System Settings -- same assumption as COPY_MAC/PASTE_MAC above.
+    //
+    // Focus, by Space number rather than by typing into Spotlight, which makes
+    // it deterministic. Space order is fixed and "Automatically rearrange
+    // Spaces" must stay off:
+    //   1 Browser | 2 Terminal | 3 IDE | 4 Notion | 5 Obsidian
+    else if (leader_sequence_two_keys(KC_F, KC_B)) {
+        SEND_STRING(SS_LCTL("1"));
+    } else if (leader_sequence_two_keys(KC_F, KC_T)) {
+        SEND_STRING(SS_LCTL("2"));
+    } else if (leader_sequence_two_keys(KC_F, KC_I)) {
+        SEND_STRING(SS_LCTL("3"));
+    } else if (leader_sequence_two_keys(KC_F, KC_N)) {
+        SEND_STRING(SS_LCTL("4"));
+    } else if (leader_sequence_two_keys(KC_F, KC_O)) {
+        SEND_STRING(SS_LCTL("5"));
+    } else if (leader_sequence_two_keys(KC_F, KC_L)) {
+        SEND_STRING(SS_LALT(SS_TAP(X_TAB)));  // last app; crosses displays
+    }
+    // Spaces
+    else if (leader_sequence_two_keys(KC_D, KC_N)) {
+        SEND_STRING(SS_LCTL(SS_TAP(X_RIGHT)));
+    } else if (leader_sequence_two_keys(KC_D, KC_P)) {
+        SEND_STRING(SS_LCTL(SS_TAP(X_LEFT)));
+    } else if (leader_sequence_two_keys(KC_D, KC_E)) {
+        SEND_STRING(SS_LCTL(SS_TAP(X_DOWN)));  // App Expose
+    }
+    // Window. Stock macOS has no move/resize/center/float, so those are absent
+    // rather than approximated.
+    else if (leader_sequence_two_keys(KC_W, KC_Q)) {
+        SEND_STRING(SS_LALT("w"));
+    } else if (leader_sequence_two_keys(KC_W, KC_F)) {
+        SEND_STRING(SS_LCTL(SS_LALT("f")));
+    } else if (leader_sequence_two_keys(KC_W, KC_I)) {
+        // Minimize is "i" (iconify), not "m": W M is the prefix of the
+        // three-key W M H/J/K/L window moves below, and with LEADER_TIMEOUT
+        // at 450ms a two-key W M would fire before you could add the third.
+        SEND_STRING(SS_LALT("m"));
+    } else if (leader_sequence_two_keys(KC_W, KC_N)) {
+        SEND_STRING(SS_LALT(SS_TAP(X_GRAVE)));
+    }
+    // System
+    else if (leader_sequence_two_keys(KC_S, KC_L)) {
+        SEND_STRING(SS_LCTL(SS_LALT("q")));  // lock
+    }
+    // Hyprland-side window moves, kept from before.
     else if (leader_sequence_three_keys(KC_W, KC_M, KC_H)) {
         SEND_STRING(SS_LGUI(SS_LSFT("h")));
     } else if (leader_sequence_three_keys(KC_W, KC_M, KC_L)) {
@@ -724,9 +767,6 @@ void master_oled_render(void) {
             break;
         case UNICDE:
             oled_write_ln_P(PSTR("Unicode"), false);
-            break;
-        case WIN_MGR:
-            oled_write_ln_P(PSTR("Win Mgr"), false);
             break;
         case KB_SETTINGS:
             oled_write_ln_P(PSTR("Settings"), false);
