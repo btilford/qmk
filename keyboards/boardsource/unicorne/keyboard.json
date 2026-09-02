@@ -77,7 +77,7 @@
             "gradient_up_down": true
         },
         "default": {
-            "animation": "typing_heatmap"
+            "animation": "gradient_left_right"
         },
         "max_brightness": 150,
         "split_count": [
